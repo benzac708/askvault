@@ -36,7 +36,7 @@ env:
 jobs:
   verify:
     name: lint, types, tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,7 +71,7 @@ jobs:
   image:
     name: lint, build, scan
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
     steps:
@@ -99,14 +99,16 @@ jobs:
           config: .hadolint.yaml
 
       # The artifact that ships is linux/arm64 because that is the only node in
-      # the cluster (D17a). This runner is amd64, so the arm64 RUN steps execute
-      # under emulation and the build is slower than anything on the target. The
-      # platform is stated here rather than left to the builder default, because
-      # the default is whatever the runner happens to be, and getting it wrong
-      # produces an image that will not pull on the node at all.
-      - uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
+      # the cluster (D17a). This runner is ALSO arm64, so the RUN steps execute
+      # natively. The QEMU setup step that used to be here was emulating arm64
+      # on an amd64 runner: slower, and a lie about the build environment -- an
+      # image built under emulation is not evidence that it builds on the real
+      # architecture, which is the thing the deployment actually depends on.
+      #
+      # The platform stays stated explicitly rather than left to the builder
+      # default, because the default is whatever the runner happens to be.
+      # Stating it means a future runner change cannot silently change the
+      # artifact.
 
       - uses: docker/setup-buildx-action@v3
 
@@ -170,7 +172,7 @@ jobs:
     name: push to ghcr
     needs: image
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       # Scoped to this job alone. GITHUB_TOKEN is minted per job, so this grant
@@ -178,10 +180,6 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
-      - uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - uses: docker/setup-buildx-action@v3
 
