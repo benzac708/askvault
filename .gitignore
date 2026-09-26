@@ -4,5 +4,13 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 data/
-.env
 trivy-results.json
+
+# Secrets.
+.env
+
+# ...but the TEMPLATE is tracked, deliberately. It documents the full setting
+# surface with no values in it, which is the point: a reader can see every knob
+# without ever seeing a credential. Without this line the rule above would
+# silently swallow the one file that is supposed to be readable.
+!.env.example
