@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
+from starlette.middleware.base import RequestResponseEndpoint
 
 from app.core.config import settings
 from app.core.limits import RateLimiter, RateLimitExceeded
@@ -120,7 +121,7 @@ def _client_id(request: Request) -> str:
 
 
 @app.middleware("http")
-async def observe(request: Request, call_next):  # type: ignore[no-untyped-def]
+async def observe(request: Request, call_next: RequestResponseEndpoint) -> Response:
     """Count and time every request, then log it as one structured line.
 
     The route template is read *after* the call, because Starlette populates

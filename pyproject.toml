@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.3", "pytest-httpx>=0.35", "ruff>=0.8"]
+dev = ["pytest>=8.3", "pytest-httpx>=0.35", "ruff>=0.8", "mypy>=1.13"]
 
 [build-system]
 requires = ["hatchling"]
@@ -23,6 +23,26 @@ packages = ["app"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+# Type checking is scoped to app/ and deliberately not strict (D11a). The point
+# is to catch the mistakes a runtime of a single request will never reach -- a
+# function called with the wrong shape, an attribute that does not exist, a
+# return that disagrees with its annotation. Turning on strict mode here would
+# mean annotating every test double and every FastAPI dependency, which is a
+# large diff of noise around the handful of real findings underneath it.
+#
+# ignore_missing_imports is on for the same reason: the point is to check *our*
+# types, and a third-party package shipping without py.typed is a fact about
+# them, not a defect in this repository.
+[tool.mypy]
+python_version = "3.12"
+files = ["app"]
+strict = false
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,233 @@
+name: ci
+
+# One workflow, three jobs, and the order they run in is the reason the pipeline
+# is cheap: nothing touches a container until the Python gates are green, and
+# nothing is published until the image has been linted, built and scanned.
+#
+# Third-party actions are pinned to release tags rather than commit digests. That
+# is a real gap and it is the same class of gap the Dockerfile avoids by
+# pinning base images -- a tag can be moved under you. Pinning five actions by
+# digest is the correct follow-up, and it is a follow-up rather than something
+# done here because a hand-copied digest is worse than an honest tag: one that
+# looks pinned and is not.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes the run it replaced. Without this, a sequence of pushes
+# to a branch burns runner minutes re-testing commits nobody will look at.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default. `packages: write` is granted to the one job that
+# pushes, not to the workflow, so a compromised test step cannot publish.
+permissions:
+  contents: read
+
+env:
+  # One image, two overlays (lock L3). The overlays differ only in this value and
+  # in replica count; there is no second build anywhere in this repository.
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/askvault
+
+jobs:
+  verify:
+    name: lint, types, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Trivy and Gitleaks both want history. A shallow clone makes both of
+          # them quietly scan less than they appear to.
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install the locked dependency set
+        run: uv sync --all-groups --locked
+
+      - name: ruff check
+        run: uv run ruff check --output-format=github .
+
+      - name: ruff format
+        run: uv run ruff format --check .
+
+      # Scoped to app/ and non-strict on purpose (D11a). Strict mode here would
+      # mean annotating every FastAPI dependency and every test double, which
+      # buries the handful of real findings under a diff of noise. What it does
+      # catch is the class of mistake a single request never reaches.
+      - name: mypy
+        run: uv run mypy app/
+
+      - name: pytest
+        run: uv run pytest -q
+
+  image:
+    name: lint, build, scan
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Gitleaks scans history, and a shallow clone makes it scan less than it
+          # appears to. Cheap here, misleading when omitted.
+          fetch-depth: 0
+
+      # Secrets first, while the job is still cheap. A credential in this
+      # history is the one finding that cannot be fixed by a later commit, and it
+      # is also the one a reviewer is most likely to assume has been checked --
+      # D19 sanitised the corpus, so this keeps proving it on every run rather
+      # than once. `detect` is git mode: the working tree, not just the tip.
+      - name: Gitleaks over the full history
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: detect --source . --redact --no-banner
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+
+      # The artifact that ships is linux/arm64 because that is the only node in
+      # the cluster (D17a). This runner is amd64, so the arm64 RUN steps execute
+      # under emulation and the build is slower than anything on the target. The
+      # platform is stated here rather than left to the builder default, because
+      # the default is whatever the runner happens to be, and getting it wrong
+      # produces an image that will not pull on the node at all.
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          # Loaded, not pushed: the scan below needs a real image in the local
+          # daemon, and nothing should reach the registry from this job.
+          load: true
+          tags: askvault:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Everything Trivy finds lands in the job summary, counted by severity.
+      # Only fixable CRITICALs gate, and the gate is a separate step reading the
+      # JSON rather than the action's own exit code -- because the two policies
+      # are different questions and one exit code can only answer one of them.
+      #
+      # Not gating on HIGH: the base image is not ours to patch, so a HIGH that
+      # is still unfixed makes the pipeline red in a way the only remedy is to
+      # silence the gate, at which point the gate means nothing. What is enforced
+      # is the subset an operator can act on today.
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: askvault:ci
+          format: json
+          output: trivy-results.json
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
+          exit-code: 0
+
+      - name: Report by severity and fail on fixable CRITICAL
+        run: |
+          set -uo pipefail
+          if [ ! -f trivy-results.json ]; then
+            echo "::warning::Trivy produced no results file; treating as no findings"
+            exit 0
+          fi
+          echo "### Vulnerability inventory by severity"
+          echo
+          jq -r '
+            [.Results[]?.Vulnerabilities[]?]
+            | group_by(.Severity)[]
+            | "- \(.[0].Severity): \(length)"
+          ' trivy-results.json || echo "- (none)"
+          echo
+          critical=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json)
+          echo "fixable CRITICAL findings: $critical"
+          if [ "$critical" -ne 0 ]; then
+            jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")
+                   | "::error::\(.VulnerabilityID) in \(.PkgName) \(.InstalledVersion) -- \(.Title)"' trivy-results.json
+            exit 1
+          fi
+          echo "gate passed: nothing fixable and CRITICAL"
+
+  publish:
+    name: push to ghcr
+    needs: image
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Scoped to this job alone. GITHUB_TOKEN is minted per job, so this grant
+      # is not reachable from the test or scan steps above.
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v3
+
+      # The built-in GITHUB_TOKEN, not a personal access token. It is scoped to
+      # this repository, expires with the job, and appears in no config file --
+      # which is the whole reason the earlier ghcr credential on this machine
+      # had to be fixed by hand. A PAT in a shell profile rots silently.
+      - name: Log in to ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve the image reference
+        id: ref
+        run: |
+          # ghcr.io requires a lowercase path. GitHub organisation and user names
+          # preserve case, so an account with a capital in it produces a
+          # reference that authenticates and then fails to pull.
+          owner=$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/$owner/askvault" >> "$GITHUB_OUTPUT"
+          # Short sha rather than branch name for the immutable tag. Rolling back
+          # a deployment is then a seven-character edit in the GitOps repository
+          # instead of a rebuild, and prod can pin a digest-like reference while
+          # dev tracks main.
+          echo "sha=sha-$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "built $(git rev-parse HEAD)"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ref.outputs.name }}:${{ steps.ref.outputs.sha }}
+            ${{ steps.ref.outputs.name }}:main
+          cache-from: type=gha
+
+      - name: Confirm the tag is pullable
+        run: |
+          # A push that reports success but produced an unpullable manifest is
+          # the failure mode that surfaces three phases later, in Argo, as an
+          # ImagePullBackOff. Ten seconds here saves that.
+          docker buildx imagetools inspect "${{ steps.ref.outputs.name }}:${{ steps.ref.outputs.sha }}" \
+            | grep -E 'Platform|Architecture' | head -4

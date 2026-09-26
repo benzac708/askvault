@@ -1,0 +1,21 @@
+# hadolint rules this repository enforces, and the two it deliberately does not.
+#
+# The Dockerfile is linted as text, separately from being built, so a bad
+# instruction is reported in seconds rather than after a multi-minute arm64
+# emulation build on a runner that is the wrong architecture.
+
+failure-threshold: warning
+
+ignored:
+  # "Pin versions in apt-get install." There is no apt-get install in this
+  # Dockerfile. The rule is aimed at images that install from a distro repository,
+  # and a rule that fires on nothing is a rule everyone learns to skip -- which
+  # costs more than the false positive it avoids.
+  - DL3008
+
+  # "Pin versions in pip install." pip is deliberately absent from the runtime
+  # stage and the builder resolves through uv against uv.lock, which is a
+  # stronger guarantee than a pinned requirement string: the lockfile pins the
+  # full resolved graph including transitive dependencies, and `--locked` fails
+  # the build if the two ever disagree.
+  - DL3013
