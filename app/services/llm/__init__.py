@@ -20,5 +20,6 @@ def get_llm() -> LLM:
             model=settings.llm_model,
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key,
+            timeout=settings.llm_timeout_seconds,
         )
     raise LLMError(f"unknown llm_provider: {provider!r}")
