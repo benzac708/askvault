@@ -224,10 +224,36 @@ jobs:
             ${{ steps.ref.outputs.name }}:main
           cache-from: type=gha
 
-      - name: Confirm the tag is pullable
+      - name: Confirm the tag is pullable and is arm64
         run: |
           # A push that reports success but produced an unpullable manifest is
           # the failure mode that surfaces three phases later, in Argo, as an
           # ImagePullBackOff. Ten seconds here saves that.
-          docker buildx imagetools inspect "${{ steps.ref.outputs.name }}:${{ steps.ref.outputs.sha }}" \
-            | grep -E 'Platform|Architecture' | head -4
+          #
+          # ghcr does not make a freshly pushed tag resolvable instantly, so a
+          # single attempt fails intermittently against a cold tag. Retry with a
+          # short backoff instead of reporting a push that actually worked.
+          ref="${{ steps.ref.outputs.name }}:${{ steps.ref.outputs.sha }}"
+          for attempt in 1 2 3 4 5 6; do
+            if docker pull --quiet "$ref" >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$attempt" -eq 6 ]; then
+              echo "::error::tag not pullable after $((attempt * 10))s: $ref"
+              exit 1
+            fi
+            echo "attempt $attempt: $ref not resolvable yet, retrying in 10s"
+            sleep 10
+          done
+          # A single-platform build produces a plain v2 manifest, which carries
+          # no platform field at all: `imagetools inspect` reports only Name,
+          # MediaType and Digest. Grepping that output for Platform or
+          # Architecture matches nothing and exits non-zero, so the assertion
+          # fails on a healthy image. The architecture lives in the image
+          # config, so read it from the pulled image instead.
+          platform=$(docker image inspect "$ref" --format '{{.Os}}/{{.Architecture}}')
+          echo "pulled $ref as $platform"
+          if [ "$platform" != "linux/arm64" ]; then
+            echo "::error::expected linux/arm64, got $platform"
+            exit 1
+          fi
