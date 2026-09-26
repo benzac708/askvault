@@ -1,0 +1,22 @@
+# The build context is uploaded before a single layer is built, so anything left
+# in here is paid for on every build, on every iteration, for nothing. The local
+# .venv alone is a few hundred megabytes of the wrong platform's wheels.
+.git
+.github
+.gitignore
+.venv
+.ruff_cache
+.pytest_cache
+
+# Derived state, not source. The index is rebuilt on every start (D29), so a
+# developer's local database has no business in an image and would only pin the
+# image to whatever corpus that one machine happened to have.
+data
+
+# Tests run in CI against the source tree, not inside the artifact. Keeping them
+# out means pytest and its plugins are not installed by `uv sync --no-dev`, and
+# the image carries no test code to be read by anyone who can pull it.
+tests
+
+**/__pycache__
+**/*.py[cod]
