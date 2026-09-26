@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$page_title</title>
+<meta name="description" content="AskVault — a retrieval-augmented question-answering service over an internal documentation corpus, running on Kubernetes.">
+<meta name="color-scheme" content="light dark">
+<style>
+/*
+  One file, no build step, no web fonts, no external requests. Every typeface
+  is a system stack on purpose: a public demo that phones a font CDN leaks the
+  visitor's IP to a third party and gains a render-blocking dependency, which is
+  a poor trade for a page whose whole point is that it is self-contained.
+
+  The paper-and-ink palette and the hairline rules are the reference-desk
+  metaphor taken literally — this is a card catalogue, not a SaaS dashboard.
+  The vermilion spine down the left edge is the same signal as a tabbed index
+  card. Restraint is the point: no shadows, no gradients, radius capped at 2px.
+*/
+
+:root {
+  --paper:    #f2efe8;
+  --card:     #fbf9f4;
+  --ink:      #1b1917;
+  --ink-2:    #4c473e;
+  --muted:    #857e6f;
+  --rule:     #d8d2c4;
+  --rule-2:   #c0b8a6;
+  --accent:   #a3381f;
+  --on-accent:#fffaf6;
+  --warn:     #8a6a1f;
+  --measure:  62ch;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria, serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:    #15140f;
+    --card:     #1d1b15;
+    --ink:      #ece7db;
+    --ink-2:    #b6af9e;
+    --muted:    #8b8474;
+    --rule:     #2f2c23;
+    --rule-2:   #454034;
+    --accent:   #e0764f;
+    --on-accent:#1a1208;
+    --warn:     #d0aa52;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  /* 3px so the fixed spine below never overlaps content. */
+  padding-left: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The spine. Full-height accent rule at the viewport edge, like the bound edge
+   of a filing cabinet. Fixed rather than in flow so long answers scroll under
+   it instead of pushing it off screen. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+  z-index: 3;
+}
+
+a { color: inherit; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.wrap {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding: 1.35rem 0 0.85rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  font: 500 0.9375rem/1 var(--mono);
+  letter-spacing: 0.06em;
+}
+
+/* Drawn rather than typed: a glyph depends on a font the reader may not have,
+   and a missing one leaves a tofu box in the corner of the page. */
+.mark {
+  width: 0.75rem; height: 0.9375rem;
+  border: 1px solid var(--ink);
+  border-left: 3px solid var(--accent);
+  flex: none;
+}
+
+.tagline {
+  margin: 0;
+  font: 400 0.6875rem/1.4 var(--mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- section labels ---------- */
+
+.kicker {
+  margin: 0 0 0.7rem;
+  font: 400 0.6875rem/1.5 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.kicker .meta { letter-spacing: 0.04em; text-transform: none; color: var(--rule-2); }
+
+/* ---------- the query: the hero ---------- */
+
+main { padding: clamp(1.75rem, 5vw, 3.25rem) 0 0; }
+
+.ask { margin: 0 0 clamp(2rem, 5vw, 3.25rem); }
+
+.ask h1 {
+  margin: 0 0 0.15rem;
+  font: 400 clamp(1.5rem, 4.5vw, 2.125rem)/1.15 var(--serif);
+  letter-spacing: -0.01em;
+}
+
+.ask .standfirst {
+  margin: 0.5rem 0 1.5rem;
+  max-width: 52ch;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.qform {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 2px solid var(--ink);
+  transition: border-color 140ms ease;
+}
+
+.qform:focus-within { border-bottom-color: var(--accent); }
+
+/* Mono for the query because a question is a search term typed into an index,
+   not prose. A serif here would suggest you are writing a sentence. */
+.qform input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.7rem 0.25rem 0.7rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 400 clamp(0.9375rem, 2.4vw, 1.1875rem)/1.4 var(--mono);
+}
+
+.qform input:focus { outline: none; }
+.qform input::placeholder { color: var(--rule-2); }
+
+.qform button {
+  flex: none;
+  align-self: center;
+  margin: 0.35rem 0;
+  padding: 0 1.15rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 500 0.75rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 140ms ease;
+}
+
+.qform button:hover { filter: brightness(1.12); }
+.qform button:active { filter: brightness(0.94); }
+
+.examples {
+  margin: 0.85rem 0 0;
+  font: 400 0.75rem/1.7 var(--mono);
+  color: var(--muted);
+}
+
+.examples button {
+  border: 0; background: none; padding: 0;
+  color: var(--ink-2);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule-2);
+  cursor: pointer;
+}
+
+.examples button:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+/* ---------- two columns ---------- */
+
+.cols { display: grid; gap: clamp(2.25rem, 5vw, 3.5rem); }
+
+@media (min-width: 62rem) {
+  .cols { grid-template-columns: minmax(0, 1fr) 15.5rem; }
+  .rail { position: sticky; top: 1.75rem; align-self: start; }
+}
+
+/* ---------- the answer ---------- */
+
+.prose {
+  margin: 0;
+  max-width: var(--measure);
+  padding-left: 1.15rem;
+  border-left: 2px solid var(--accent);
+  font: 400 1.1875rem/1.65 var(--serif);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* Ungrounded means retrieval came back empty and the model was shown nothing.
+   The answer is then the canned no-context string, not a model response, and
+   the visual treatment says so rather than letting it read as authoritative. */
+.ungrounded .prose { border-left-color: var(--rule-2); color: var(--ink-2); }
+
+.cites {
+  list-style: none;
+  margin: 1.6rem 0 0;
+  padding: 0;
+  max-width: var(--measure);
+}
+
+.cites li {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.cnum {
+  font: 400 0.75rem/1.6 var(--mono);
+  color: var(--accent);
+}
+
+.cwhere { font: 400 0.8125rem/1.6 var(--mono); overflow-wrap: anywhere; }
+.cwhere .sep { color: var(--rule-2); padding: 0 0.15rem; }
+
+.csnip {
+  grid-column: 2;
+  margin: 0.2rem 0 0;
+  font-size: 0.8438rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.notice {
+  margin: 0;
+  max-width: var(--measure);
+  padding-left: 1.15rem;
+  border-left: 2px solid var(--warn);
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
+
+.pending { margin: 0; font: 400 0.8125rem/1.6 var(--mono); color: var(--muted); }
+
+/* ---------- the index rail ---------- */
+
+.rail section + section { margin-top: 2.25rem; }
+
+.idx { list-style: none; margin: 0; padding: 0; }
+
+.idx li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--rule);
+  font: 400 0.8125rem/1.5 var(--mono);
+}
+
+.idx li span:last-child { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+.idx .doc { overflow-wrap: anywhere; }
+
+.idx-total {
+  margin: 0.6rem 0 0;
+  font: 400 0.75rem/1.6 var(--mono);
+  color: var(--muted);
+}
+
+.note { margin: 0; font-size: 0.8125rem; line-height: 1.65; color: var(--muted); }
+.note + .note { margin-top: 0.7rem; }
+.note b { color: var(--ink-2); font-weight: 600; }
+.note code { font-family: var(--mono); font-size: 0.95em; color: var(--ink-2); }
+
+/* ---------- footer ---------- */
+
+footer {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  padding: 1rem 0 2.5rem;
+  border-top: 1px solid var(--rule);
+  font: 400 0.75rem/1.7 var(--mono);
+  color: var(--muted);
+}
+
+footer p { margin: 0; }
+footer a { text-underline-offset: 3px; text-decoration-color: var(--rule-2); }
+footer a:hover { color: var(--accent); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span>askvault</a>
+  <p class="tagline">Internal docs &middot; lexical retrieval</p>
+</header>
+
+<main class="wrap">
+
+  <section class="ask">
+    <p class="kicker">Ask the index</p>
+    <h1>What does the documentation actually say?</h1>
+    <p class="standfirst">
+      Every word below was indexed from a small corpus of internal documents.
+      The model is given only the passages that matched, and the answer is
+      always shown alongside the exact text it came from.
+    </p>
+
+    <form class="qform" id="qform" method="post" action="/">
+      <label class="sr-only" for="question">Your question</label>
+      <input id="question" name="question" type="text" value="$query" maxlength="1000"
+             placeholder="how do I request production access?" autocomplete="off"
+             autocapitalize="off" spellcheck="false" enterkeyhint="send">
+      <button type="submit">Ask</button>
+    </form>
+
+    <p class="examples">try
+      <button type="button" data-q="how do I request production access?">production access</button> &middot;
+      <button type="button" data-q="what do I do if a service is down?">a service is down</button> &middot;
+      <button type="button" data-q="how do I rotate a leaked credential?">leaked credential</button> &middot;
+      <button type="button" data-q="what is the onboarding checklist?">onboarding</button> &middot;
+      <button type="button" data-q="how do I price a banana?">unanswerable</button>
+    </p>
+  </section>
+
+  <div class="cols">
+    <section id="out" aria-live="polite" aria-busy="false">
+$result_block
+    </section>
+
+    <aside class="rail">
+      <section>
+        <p class="kicker">Index</p>
+        <ul class="idx">
+$index_block
+        </ul>
+        <p class="idx-total">$passages_total</p>
+      </section>
+
+      <section>
+        <p class="kicker">How this answers</p>
+        <p class="note">
+          Retrieval is <b>lexical</b>: SQLite FTS5 with BM25 ranking over the
+          section text. There are no embeddings and no vector store, so a
+          question that shares no words with a passage will not find it even
+          when it means the same thing.
+        </p>
+        <p class="note">
+          The model sees only the passages listed under each answer. If nothing
+          matches, the reply says so instead of guessing &mdash; a wrong answer
+          with a citation is worse than no answer.
+        </p>
+      </section>
+    </aside>
+  </div>
+
+</main>
+
+<footer class="wrap">
+  <p>
+    Served by one replica behind Traefik, deployed by Argo CD, instrumented
+    with Prometheus &mdash; <a href="/readyz">/readyz</a> reports index state.
+  </p>
+</footer>
+
+<script>
+/*
+  Progressive enhancement only. The form above is a real form posting to a real
+  route and the server renders the answer, so this entire block can be deleted
+  and the page still works. It exists to avoid a full reload, not to make the
+  feature function.
+
+  The two rules this block must keep -- no dollar signs anywhere in this file,
+  and every untrusted value written as text rather than as markup -- are stated
+  in app/web/render.py, where the page's substitution contract lives. Note that
+  the comment above obeys them: the prose describes the rules without spending
+  the characters the checks look for.
+*/
+(function () {
+  "use strict";
+
+  var form = document.getElementById("qform");
+  var input = document.getElementById("question");
+  var out = document.getElementById("out");
+  if (!form || !input || !out) { return; }
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) { node.className = cls; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function render(data) {
+    var frag = document.createDocumentFragment();
+
+    var head = el("p", "kicker", "Answer");
+    head.appendChild(el("span", "meta",
+      "  " + data.passages_considered + " passage"
+        + (data.passages_considered === 1 ? "" : "s") + "  ·  " + data.model));
+    frag.appendChild(head);
+
+    // The wrapper carries the ungrounded styling, matching the server-rendered
+    // markup: no passages means the model was shown nothing, so the reply is
+    // the canned no-context string and must not read as a real answer.
+    var body = el("div", data.passages_considered ? "result" : "result ungrounded");
+    body.appendChild(el("p", "prose", data.answer));
+    frag.appendChild(body);
+
+    if (data.citations && data.citations.length) {
+      frag.appendChild(el("p", "kicker", "Cited passages"));
+      var list = el("ol", "cites");
+      data.citations.forEach(function (c, i) {
+        var item = el("li");
+        item.appendChild(el("span", "cnum", String(i + 1)));
+        var where = el("span", "cwhere", c.doc);
+        where.appendChild(el("span", "sep", "/"));
+        where.appendChild(document.createTextNode(c.section));
+        item.appendChild(where);
+        item.appendChild(el("p", "csnip", c.snippet));
+        list.appendChild(item);
+      });
+      frag.appendChild(list);
+    }
+
+    return frag;
+  }
+
+  function fail(message) {
+    var frag = document.createDocumentFragment();
+    frag.appendChild(el("p", "kicker", "Not answered"));
+    frag.appendChild(el("p", "notice", message));
+    return frag;
+  }
+
+  function detail(body, fallback) {
+    if (body && body.detail) { return body.detail; }
+    return fallback;
+  }
+
+  function show(node) {
+    out.textContent = "";
+    out.setAttribute("aria-busy", "false");
+    out.appendChild(node);
+  }
+
+  function ask(question) {
+    out.setAttribute("aria-busy", "true");
+    out.textContent = "";
+    out.appendChild(el("p", "kicker", "Retrieving"));
+    out.appendChild(el("p", "pending", "matching the index"));
+
+    fetch("/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: question, k: 3 })
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        if (res.status === 429) {
+          throw new Error(detail(body, "Rate limited. Try again shortly."));
+        }
+        if (!res.ok) {
+          throw new Error(detail(body, "The answer service returned HTTP " + res.status + "."));
+        }
+        return body;
+      });
+    }).then(function (data) {
+      show(render(data));
+      try { history.replaceState(null, "", "#" + encodeURIComponent(question)); } catch (e) { /* older browsers */ }
+    }).catch(function (err) {
+      show(fail(err.message || "The request failed."));
+    });
+  }
+
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var question = input.value.trim();
+    if (!question) { input.focus(); return; }
+    ask(question);
+  });
+
+  // The example chips work without the fetch path too, so they only need to set
+  // the value and submit through the same listener.
+  Array.prototype.forEach.call(document.querySelectorAll("[data-q]"), function (chip) {
+    chip.addEventListener("click", function () {
+      input.value = chip.getAttribute("data-q");
+      ask(input.value);
+    });
+  });
+})();
+</script>
+</body>
+</html>

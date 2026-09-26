@@ -55,6 +55,27 @@ def build(db_path: str | None = None, samples_dir: str | None = None) -> int:
         conn.close()
 
 
+def manifest(db_path: str | None = None) -> list[tuple[str, int]]:
+    """(doc, section count) for every indexed document, ordered by name.
+
+    Read from the index rather than by walking the corpus directory, because the
+    index is the only thing the app can actually answer from. A file that failed
+    to parse is simply absent here, so the web page cannot advertise a document
+    that no query will ever return a passage from.
+    """
+    db = Path(db_path or settings.db_path)
+    if not db.exists():
+        return []
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        return [
+            (row[0], row[1])
+            for row in conn.execute("SELECT doc, COUNT(*) FROM passages GROUP BY doc ORDER BY doc")
+        ]
+    finally:
+        conn.close()
+
+
 def _match_expr(question: str) -> str:
     """Build a safe FTS5 MATCH expression.
 

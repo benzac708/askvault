@@ -98,3 +98,40 @@ def test_unindexed_file_is_ignored(tmp_path):
     (corpus / "notes.txt").write_text("this should never be indexed", encoding="utf-8")
     db = tmp_path / "corpus.db"
     assert store.build(db_path=str(db), samples_dir=str(corpus)) == 0
+
+
+def test_manifest_counts_sections_per_document(tmp_path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    # A leading H1 that has body text under it becomes its own "Overview"
+    # passage, so alpha yields Overview + One + Two and beta Overview + Only.
+    (corpus / "alpha.md").write_text("# Alpha\n\nintro\n\n## One\n\na\n\n## Two\n\nb\n", "utf-8")
+    (corpus / "beta.md").write_text("# Beta\n\nintro\n\n## Only\n\nb\n", "utf-8")
+    db = tmp_path / "corpus.db"
+    assert store.build(db_path=str(db), samples_dir=str(corpus)) == 5
+
+    assert store.manifest(db_path=str(db)) == [("alpha", 3), ("beta", 2)]
+
+
+def test_manifest_is_empty_without_an_index(tmp_path):
+    """The web page falls back to its own placeholder rather than failing."""
+    assert store.manifest(db_path=str(tmp_path / "absent.db")) == []
+
+
+def test_manifest_reports_only_what_was_indexed(tmp_path):
+    """It reads the index, not the directory.
+
+    A document that failed to parse is absent from the index, so listing the
+    directory instead would advertise a document no query can return a passage
+    from -- the page would promise retrieval it cannot deliver.
+    """
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "good.md").write_text("# Good\n\nintro\n\n## S\n\nbody\n", "utf-8")
+    db = tmp_path / "corpus.db"
+    store.build(db_path=str(db), samples_dir=str(corpus))
+
+    # A file appears in the corpus directory after the index was built.
+    (corpus / "added-later.md").write_text("# Later\n\n## S\n\nbody\n", "utf-8")
+
+    assert [doc for doc, _ in store.manifest(db_path=str(db))] == ["good"]
