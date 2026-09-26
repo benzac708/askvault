@@ -47,9 +47,26 @@ ok "disk free: ${disk_gb}G"
 # Every script in this directory exports PATH explicitly for that reason.
 export PATH="$HOME/.local/bin:$PATH"
 
-for tool in kubectl k3s helm docker; do
-  command -v "$tool" >/dev/null 2>&1 || fail "$tool not found on PATH"
-  ok "found $tool"
+# REQUIRED tools must already exist. OPTIONAL ones may be absent on a bare host
+# because a LATER script installs them.
+#
+# BUG FOUND ON THE FIRST BARE-HOST RUN, 2026-09-26: this script demanded
+# `kubectl` and `k3s`, and both are created BY 10-k3s.sh. On a host that had
+# just been torn down to 0%, preflight failed immediately with
+# "kubectl not found" — meaning the first step of the rebuild could never pass
+# on the very host state it exists to verify. A precondition check must only
+# require what its OWN step needs, never what a later step provides.
+# docker is genuinely required before any of this: the rebuild does not install
+# it, and a missing docker would only surface several steps later.
+command -v docker >/dev/null 2>&1 || fail "docker not found on PATH (the rebuild does not install it)"
+ok "found docker (required)"
+
+for tool in k3s kubectl helm; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    ok "found $tool"
+  else
+    note "$tool absent — installed by a later script, expected on a bare host"
+  fi
 done
 
 # --- the reserved ports must be free, OR already owned by us -----------------
