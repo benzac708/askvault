@@ -87,6 +87,18 @@ What that layer does contain, and what it is worth looking at:
   └────────────────────────────────┘
 ```
 
+
+**Edge roles - Caddy vs Traefik.** Two layers, two owners, one chain:
+cloudflared tunnel -> Caddy (host, the estate's front door for every
+`*.zachara.dev` name) -> Traefik NodePort :30080 (the cluster's ingress
+controller, reading this repo's k8s Ingress). Caddy exists because a single
+tunnel fronts dozens of host-side services, most of them not in k8s; Traefik
+exists because askvault is a k8s Service and the k8s-native way to expose it
+is an Ingress. On managed Kubernetes the same manifests run with an
+in-cluster cloudflared + Traefik as a load-balanced ingress; nothing in the
+app layer changes - the NodePort/Caddy hop is the free-tier one-node reality,
+not part of the app design.
+
 Two repositories, deliberately:
 
 | Repository | Contains | Why separate |
