@@ -135,7 +135,7 @@ jobs:
       # silence the gate, at which point the gate means nothing. What is enforced
       # is the subset an operator can act on today.
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: askvault:ci
           format: json
