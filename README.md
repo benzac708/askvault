@@ -91,8 +91,9 @@ What that layer does contain, and what it is worth looking at:
 **Edge roles - Caddy vs Traefik.** Two layers, two owners, and for AskVault
 the path is direct: `cloudflared tunnel -> Traefik NodePort :30080` - the
 tunnel config routes `askvault.zachara.dev` to localhost:30080, and Traefik
-(the cluster's ingress controller) reads this repo's k8s Ingress (host +
-`/`, `/chat`) and serves the pod. Caddy is the estate's front door for the
+(the cluster's ingress controller) serves it via an IngressRoute with a
+Middleware chain (security headers, edge rate cap, retry on the read path
+only). TLS terminates at the Cloudflare edge; Traefik handles plain HTTP. Caddy is the estate's front door for the
 OTHER `*.zachara.dev` names on :80/:443/:8080 (site, map, 3d, note, dash,
 host apps); it is not in the askvault path. Traefik exists because askvault
 is a k8s Service and the k8s-native way to expose it is an Ingress; Caddy
