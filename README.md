@@ -7,7 +7,7 @@ Kubernetes on a single ARM VPS. Ask it a question and it answers from the
 document corpus with citations, or declines when the corpus does not cover the
 question.
 
-It is small on purpose. The interesting part is not the application — it is the
+It is small on purpose. The interesting part is not the application - it is the
 operational layer around it: GitOps reconciliation, an immutable image
 pipeline, health probes that mean something, and a rebuild that is scripted
 rather than remembered.
@@ -22,7 +22,7 @@ it would be the easiest thing to do here.
 **The operations are platform-grade. The architecture is not a platform.**
 There is one service, one replica, and a lexical retriever with no embeddings
 and no vector store. It is a RAG service running under a full internal-platform
-operational layer — not a distributed system.
+operational layer - not a distributed system.
 
 What that layer does contain, and what it is worth looking at:
 
@@ -115,7 +115,7 @@ SQLite FTS5 (BM25)  ──►  top-k passages  ──►  LLM with numbered pass
 ```
 
 That last line is the design decision worth explaining. The prompt numbers the
-passages `[1]`, `[2]` so the model *can* cite them — but the `citations` field
+passages `[1]`, `[2]` so the model *can* cite them - but the `citations` field
 in the response is constructed from the `Passage` objects that were retrieved.
 If the model ignores the markers, hallucinates, or returns prose with no
 numbers at all, **the citations are still correct.** A RAG layer whose citations
@@ -135,7 +135,7 @@ This is the deliberate price of zero infrastructure. High recall, no
 precision. Two things follow, and both are load-bearing:
 
 1. The `NO_CONTEXT` branch is a cheap pre-filter for out-of-vocabulary
-   questions — **not** the guard against unsupported answers.
+   questions - **not** the guard against unsupported answers.
 2. Rejecting an unsupported question is the **model's** job, via the system
    prompt. Verified: asked about a refund window that does not exist in the
    corpus, it answers "The provided context does not contain information about
@@ -143,7 +143,7 @@ precision. Two things follow, and both are load-bearing:
 
 This is asserted in the test suite as a documented property, so it reads as a
 decision rather than an oversight. Closing it properly means vector retrieval,
-which means an embedding model and a vector store on a 23 GB VPS — deferred
+which means an embedding model and a vector store on a 23 GB VPS - deferred
 deliberately, not forgotten.
 
 ---
@@ -214,12 +214,12 @@ The container is the hardened part, and the secret handling is the weak part.
   **Sealed Secrets** or the **External Secrets Operator**, so the secret is
   encrypted in Git or sourced from a KMS rather than existing as cluster state.
   It is not used here because adding a KMS dependency to a single-VPS drill
-  with one credential would be ceremony, not security — and the honest version
+  with one credential would be ceremony, not security - and the honest version
   of that trade-off is to name it rather than to imply it was not considered.
 - **The image reports vulnerabilities inherited from the Debian base, and the
   numbers are not small: 5 CRITICAL, 55 HIGH, 104 MEDIUM, 102 LOW, plus 5
   UNKNOWN.** CI gates on **fixable CRITICAL only**, and that count is
-  **0** — which is why the build passes and why that gate is the honest one:
+  **0** - which is why the build passes and why that gate is the honest one:
   gating on unfixed upstream base-image findings would block every build
   forever and teach everyone to bypass the gate.
 
@@ -230,7 +230,7 @@ The container is the hardened part, and the secret handling is the weak part.
 
   5 CRITICAL is a number that deserves to be looked at rather than rounded off.
   They are unfixed base-image findings with no available patch, which is why
-  the gate ignores them — but "no patch available" is a different claim from
+  the gate ignores them - but "no patch available" is a different claim from
   "not a problem", and a scan that is suspiciously clean would be its own
   signal.
 - **The cluster API is not exposed.** There is no public ingress to Argo CD or
@@ -244,7 +244,7 @@ party:
 1. The `prod-zachara-tunnel` cloudflared tunnel is a named object on a
    Cloudflare account.
 2. The `askvault.zachara.dev` DNS record is Cloudflare-side.
-3. **The image is `linux/arm64` only.** It will not pull on an x86 machine —
+3. **The image is `linux/arm64` only.** It will not pull on an x86 machine -
    you get a manifest mismatch, not a slow build. CI builds with
    `runs-on: ubuntu-24.04-arm` to match the deployment target, which is the
    correct default here and the wrong one for a general audience.
@@ -273,7 +273,7 @@ even though the same image pulls fine from a shell on the same host.
 
 **Fix applied, and verified.** An `imagePullSecret` is set on the pod. Proven
 by A/B test rather than assertion: two identical pods at
-`imagePullPolicy: Always` — the one with the secret reached `Succeeded`, the one
+`imagePullPolicy: Always` - the one with the secret reached `Succeeded`, the one
 without reached `ErrImagePull`.
 
 **But the fix is a workaround, not a root cause,** and three candidate causes
@@ -285,7 +285,7 @@ were tested and disproven:
 | Anonymous pull is rate-limited | 105/105 anonymous token requests returned 200, with no rate-limit headers present |
 | IPv6 vs IPv4 divergence | `ghcr.io` resolves to a single A record; `-6` has no route, so containerd cannot be choosing differently |
 
-So: a public package, no rate limiting, one address family, one host — and the
+So: a public package, no rate limiting, one address family, one host - and the
 kubelet's own token request still returns `403 Forbidden` while the identical
 request from a shell returns `200`. Whatever decides this is server-side and
 not yet characterised. The elimination is recorded here because the next person
@@ -324,7 +324,7 @@ askvault-gitops/
 ```
 
 The environment difference between `dev` and `prod` is namespace, environment
-label, the three LLM config keys, the rate ceilings, and the hostname — and
+label, the three LLM config keys, the rate ceilings, and the hostname - and
 nothing else. That constraint is enforced by review, not by a tool, which is
 worth knowing before trusting it.
 
@@ -360,4 +360,4 @@ the kind of thing that only exists after breaking it once.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

@@ -136,7 +136,7 @@ def render_page(
     Both are read from the index rather than the corpus directory, so the page
     cannot advertise a document that failed to parse and cannot answer from.
     """
-    title = f"{query} — AskVault" if query else "AskVault"
+    title = f"{query} - AskVault" if query else "AskVault"
     return _template().safe_substitute(
         page_title=_esc(title),
         query=_esc(query),
