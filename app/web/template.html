@@ -34,9 +34,7 @@
   --text:     #e8e8e8;
   --soft:     #a3a3a3;
   --accent:   #d4a017;
-  --good:     #9ae6b4;
   --danger:   #f19a9a;
-  --urgent:   #f04848;
   --measure:  44rem;
   --masthead: 3rem;
   --radius:   14px;
@@ -95,13 +93,6 @@ button { font: inherit; cursor: pointer; }
   color: var(--text);
 }
 
-.masthead .tagline {
-  font: 400 0.6875rem/1 var(--mono);
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
 /* ---------- the hero: one question, dead centre ---------- */
 
 main {
@@ -141,7 +132,7 @@ h1 {
   margin-inline: auto;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 10px;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
   transition: border-color 0.15s ease;
 }
@@ -184,34 +175,35 @@ h1 {
   text-align: center;
 }
 
-/* ---------- the example strip: chips, not middots ---------- */
+/* ---------- the example strip: quiet text links ---------- */
 
 .examples {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem 0.7rem;
   margin: 0;
   width: 100%;
   font-size: 0.8125rem;
   color: var(--muted);
 }
 
-.examples .try { font-weight: 600; }
+.examples .try { font-weight: 500; color: var(--soft); }
 
-.chip {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--soft);
-  border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  transition: color 0.15s ease, border-color 0.15s ease;
+.examples button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font-size: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.25rem;
+  transition: color 0.15s ease;
 }
 
-.chip:hover { color: var(--text); border-color: var(--accent); }
+.examples button:hover { color: var(--accent); }
 
 /* ---------- answer view ---------- */
 
@@ -228,9 +220,8 @@ h1 {
 }
 
 .kicker {
-  font: 600 0.6875rem/1 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font: 500 0.75rem/1.2 var(--mono);
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin: 0.25rem 0 0;
   display: flex;
@@ -240,7 +231,6 @@ h1 {
 }
 
 .kicker .meta {
-  text-transform: none;
   letter-spacing: 0.02em;
   font-weight: 400;
   color: var(--muted);
@@ -249,8 +239,8 @@ h1 {
 .result {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem;
 }
 
 .result.ungrounded {
@@ -274,26 +264,24 @@ h1 {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
 }
 
 .cites li {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
+  border-top: 1px solid var(--line);
 }
+
+.cites li:first-child { border-top: 0; }
 
 .cites a.src {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.9rem 1rem;
+  gap: 0.3rem;
+  padding: 0.75rem 0.4rem 0.75rem 0;
   text-decoration: none;
   color: inherit;
 }
 
-.cites a.src:hover { background: var(--panel); }
+.cites a.src:hover .cwhere { color: var(--accent); }
 
 .cnum {
   font: 600 0.6875rem/1 var(--mono);
@@ -317,29 +305,24 @@ h1 {
 }
 
 .another {
-  margin: 0.25rem 0 0;
+  margin: 0.5rem 0 0;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
 .another a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 0.45rem 1rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--soft);
-  transition: color 0.15s ease, border-color 0.15s ease;
+  font: 500 0.8125rem/1 var(--mono);
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.25rem;
+  transition: color 0.15s ease;
 }
 
-.another a:hover { color: var(--text); border-color: var(--accent); }
+.another a:hover { color: var(--accent); }
 
-/* ---------- the rail: quiet cards under one hairline ---------- */
+/* ---------- the rail: one hairline, then quiet mono tags ---------- */
 
 .index {
   display: flex;
@@ -362,16 +345,14 @@ h1 {
 }
 
 .idx li {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-  font: 400 0.75rem/1.2 var(--mono);
+  border: 0;
+  padding: 0;
+  font: 400 0.75rem/1.5 var(--mono);
   color: var(--soft);
 }
 
 .idx li.total {
   color: var(--muted);
-  border-style: dashed;
 }
 
 details {
@@ -448,7 +429,6 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
 
 <header class="wrap masthead">
   <a class="wordmark" href="/">AskVault</a>
-  <span class="tagline">RAG over org docs</span>
 </header>
 
 <main class="wrap">
@@ -469,11 +449,11 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
 
     <p class="examples">
       <span class="try">try</span>
-      <button type="button" class="chip" data-q="how do I request production access?">production access</button>
-      <button type="button" class="chip" data-q="what do I do if a service is down?">a service is down</button>
-      <button type="button" class="chip" data-q="how do I rotate a leaked credential?">leaked credential</button>
-      <button type="button" class="chip" data-q="what is the onboarding checklist?">onboarding</button>
-      <button type="button" class="chip" data-q="how do I price a banana?">unanswerable</button>
+      <button type="button" data-q="how do I request production access?">production access</button>
+      <button type="button" data-q="what do I do if a service is down?">a service is down</button>
+      <button type="button" data-q="how do I rotate a leaked credential?">leaked credential</button>
+      <button type="button" data-q="what is the onboarding checklist?">onboarding</button>
+      <button type="button" data-q="how do I price a banana?">unanswerable</button>
     </p>
 
     <section id="out" aria-live="polite" aria-busy="false">
