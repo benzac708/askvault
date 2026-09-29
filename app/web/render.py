@@ -74,7 +74,7 @@ def _result_block(result: Answer | None, error: str) -> str:
 
     if result is None:
         return (
-            '      <p class="kicker">No question asked</p>\n'
+            '      <p class="kicker none">No question asked</p>\n'
             '      <p class="pending">the answer, with its citations, appears here</p>'
         )
 
@@ -136,7 +136,7 @@ def render_page(
     Both are read from the index rather than the corpus directory, so the page
     cannot advertise a document that failed to parse and cannot answer from.
     """
-    title = f"{query} — askvault" if query else "askvault"
+    title = f"{query} — AskVault" if query else "AskVault"
     return _template().safe_substitute(
         page_title=_esc(title),
         query=_esc(query),

@@ -297,6 +297,49 @@ footer p { margin: 0; }
 footer a { text-underline-offset: 3px; text-decoration-color: var(--rule); }
 footer a:hover { color: var(--accent); }
 
+/* ---------- answered: the hero becomes the page, nothing else ---------- */
+
+.another {
+  display: none;
+  margin: 1.75rem 0 0;
+  font: 400 0.75rem/1.6 var(--mono);
+}
+
+.another a {
+  color: var(--muted);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+}
+
+.another a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+/* With an answer in view, the page is just the answer: the landing chrome
+   (eyebrow, form, helpers) and everything below the fold (index, notes,
+   footer) falls away, and the hero centres the answer exactly as it centred
+   the question. Served markup is untouched - the block is merely unprinted. */
+body:has(.result) .hero > .kicker,
+body:has(.result) .standfirst,
+body:has(.result) .examples,
+body:has(.result) .qform,
+body:has(.result) .index,
+body:has(.result) footer { display: none; }
+
+/* And the answer itself becomes the focal point the form was on the landing:
+   dead centre. The question pins to the top edge and the exit path to the
+   bottom edge; both sit out of flow so the answer owns the whole band and
+   centres within it exactly, however tall or short it is. */
+body:has(.result) .hero { position: relative; display: flex; flex-direction: column; }
+body:has(.result) h1 { position: absolute; top: 2rem; left: 0; right: 0; margin: 0; }
+body:has(.result) #out { margin: auto 0; }
+body:has(.result) .another { position: absolute; bottom: 2rem; left: 0; right: 0; margin: 0; }
+
+body:has(.result) .another { display: block; }
+
+/* Landing: the empty-state strip is implied by the form, so it is served but
+   not printed. It only stops being implied after the first ask. */
+body:not(:has(.result)) #out .kicker.none,
+body:not(:has(.result)) #out .kicker.none + p { display: none; }
+
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -307,7 +350,7 @@ footer a:hover { color: var(--accent); }
 <body>
 
 <header class="wrap masthead">
-  <a class="wordmark" href="/">askvault</a>
+  <a class="wordmark" href="/">AskVault</a>
 </header>
 
 <main class="wrap">
@@ -334,20 +377,20 @@ footer a:hover { color: var(--accent); }
       <button type="button" data-q="what is the onboarding checklist?">onboarding</button> &middot;
       <button type="button" data-q="how do I price a banana?">unanswerable</button>
     </p>
-  </section>
 
-  <div class="index">
     <section id="out" aria-live="polite" aria-busy="false">
 $result_block
     </section>
 
-    <section>
-      <p class="kicker">Index</p>
-      <ul class="idx">
+    <p class="another"><a href="/">ask another question</a></p>
+  </section>
+
+  <section class="index">
+    <p class="kicker">Index</p>
+    <ul class="idx">
 $index_block
-      </ul>
-      <p class="idx-total">$passages_total</p>
-    </section>
+    </ul>
+    <p class="idx-total">$passages_total</p>
 
     <details>
       <summary>How this answers</summary>
@@ -363,7 +406,7 @@ $index_block
         with a citation is worse than no answer.
       </p>
     </details>
-  </div>
+  </section>
 
 </main>
 
@@ -474,6 +517,9 @@ $index_block
       });
     }).then(function (data) {
       show(render(data));
+      var head = document.querySelector("h1");
+      if (head) { head.textContent = question; }
+      try { document.title = question + " \u2014 AskVault"; } catch (e) { /* older browsers */ }
       try { history.replaceState(null, "", "#" + encodeURIComponent(question)); } catch (e) { /* older browsers */ }
     }).catch(function (err) {
       show(fail(err.message || "The request failed."));
