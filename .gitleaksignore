@@ -2,5 +2,5 @@
 # script's confirmation prompts with dummy OPENROUTER_API_KEY values
 # (sk-or-v1-0123456789abcdef). History keeps them; the gate stays on for
 # everything real. Fingerprints: commit:file:rule:line.
-00811cab6f2737468065ec3414285827c0ac7da9:hack/rebuild.test.sh:generic-api-key:48
-00811cab6f2737468065ec3414285827c0ac7da9:hack/rebuild.test.sh:generic-api-key:134
+318d7621f4f80e97f00ab43fabc59f0c85b1fa55:hack/rebuild.test.sh:generic-api-key:48
+318d7621f4f80e97f00ab43fabc59f0c85b1fa55:hack/rebuild.test.sh:generic-api-key:134
