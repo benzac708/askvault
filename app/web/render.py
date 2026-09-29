@@ -79,7 +79,6 @@ def _result_block(result: Answer | None, error: str) -> str:
         )
 
     grounded = result.passages_considered > 0
-    count = result.passages_considered
 
     state = "result" if grounded else "result ungrounded"
 
