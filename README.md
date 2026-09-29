@@ -230,6 +230,20 @@ The container is the hardened part, and the secret handling is the weak part.
   `CVE-2026-63076`, both fixed in `3.0.22-1~deb12u1`. The base image is pinned
   to `python:3.12-slim-bookworm`; see "Deferred" below for why the bump is
   separated from the rest of this work rather than folded into it.
+  Addendum, scanned `sha-449bb44250e2` on 2026-09-29 with a fresh Trivy DB
+  (raw, unfiltered): the five CRITICALs are all Debian bookworm packages with
+  **no published fix** (`FixedVersion` absent), so a rebuild moves none of
+  them today - a fresh pull of `python:3.12-slim-bookworm` resolves to the
+  same package set. One is in the app's own stack, the rest are base-layer:
+
+  - `CVE-2025-7458` - `libsqlite3-0` - the retrieval database this app reads.
+  - `CVE-2026-13221`, `CVE-2026-42496`, `CVE-2026-8376` - `perl-base` (base-layer).
+  - `CVE-2023-45853` - `zlib1g` (base-layer).
+
+  The resolution path is upstream: when Debian publishes the fixes, a normal
+  rebuild from the same base tag clears every one of them. A scheduled Trivy
+  rescan with a fresh database is the alerting mechanism; nothing here is
+  bypassed, it is tracked.
 
   5 CRITICAL is a number that deserves to be looked at rather than rounded off.
   They are unfixed base-image findings with no available patch, which is why
