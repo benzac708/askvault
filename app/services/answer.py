@@ -6,13 +6,16 @@ from app.services.retrieval.models import Passage
 SYSTEM = (
     "You answer questions about an internal documentation corpus. "
     "Use ONLY the numbered context passages provided. "
-    "If the context does not contain the answer, say so plainly. "
+    "Answer directly from the passages: if a passage addresses the question, "
+    "even in different wording, answer from it. Do not refuse when the "
+    "passages cover the question. If no passage addresses it, say so plainly. "
     "Never invent policy, names, numbers, or people."
 )
 
 NO_CONTEXT = (
     "I could not find anything in the indexed corpus that answers this. "
-    "The corpus covers onboarding, access control, incident response and IT."
+    "The corpus covers onboarding, access control, incident response, IT "
+    "and AskVault's own documentation."
 )
 
 
