@@ -186,7 +186,7 @@ with tests:
 bash ~/repos/askvault/hack/rebuild.test.sh
 ```
 
-51 assertions, no cluster, no network, a few seconds. It drives the real
+52 assertions, no cluster, no network, a few seconds. It drives the real
 `rebuild.sh` and `90-teardown.sh` with stubbed steps and asserts on **the
 order things happened in** — in particular that a missing credential refuses
 *before* the teardown runs, which is the property that stops a missing key from
