@@ -227,12 +227,15 @@ The container is the hardened part, and the secret handling is the weak part.
 - **Runs as UID 10001, non-root, with `readOnlyRootFilesystem: true` and all
   capabilities dropped.** The only writable path is an `emptyDir` at `/data`,
   which holds the SQLite index.
-- **`ghcr-pull` is a plain Kubernetes `Secret`.** In production this would be
-  **Sealed Secrets** or the **External Secrets Operator**, so the secret is
-  encrypted in Git or sourced from a KMS rather than existing as cluster state.
-  It is not used here because adding a KMS dependency to a single-VPS drill
-  with one credential would be ceremony, not security - and the honest version
-  of that trade-off is to name it rather than to imply it was not considered.
+- **Credentials travel as Sealed Secrets** (bitnami, encrypted in Git via
+  `kubeseal`, decrypted in-cluster by the sealed-secrets controller). Both
+  `askvault-llm` and `ghcr-pull` are SealedSecrets in
+  `askvault-gitops/overlays/prod/sealed-secrets.yaml`; a rebuild is
+  non-interactive - no key prompt, no `~/.docker/config.json`. The sealed
+  file is applied by `hack/50-gitops.sh` (and waited on), not by kustomize,
+  because the overlay's namespace transformer cannot host prod and dev copies
+  in one multi-document file. A KMS-sourced External Secrets Operator remains
+  the stated multi-cluster evolution.
 - **The image reports vulnerabilities inherited from the Debian base, and the
   numbers are not small: 5 CRITICAL, 55 HIGH, 104 MEDIUM, 102 LOW, plus 5
   UNKNOWN.** CI gates on **fixable CRITICAL only**, and that count is
