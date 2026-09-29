@@ -50,9 +50,9 @@ What that layer does contain, and what it is worth looking at:
                │ cloudflared tunnel (host)
                ▼
         ┌──────────────┐
-        │    Caddy     │  sole owner of host :80 / :443
+        │    Caddy     │  other hostnames (site, map, 3d, note)
         └──────┬───────┘
-               │ reverse_proxy → 127.0.0.1:30080
+               │  askvault path:* tunnel → 30080
                ▼
 ┌──────────────────────────────────────────────────────────┐
 │  k3s  (single ARM node)                                  │
@@ -88,16 +88,18 @@ What that layer does contain, and what it is worth looking at:
 ```
 
 
-**Edge roles - Caddy vs Traefik.** Two layers, two owners, one chain:
-cloudflared tunnel -> Caddy (host, the estate's front door for every
-`*.zachara.dev` name) -> Traefik NodePort :30080 (the cluster's ingress
-controller, reading this repo's k8s Ingress). Caddy exists because a single
-tunnel fronts dozens of host-side services, most of them not in k8s; Traefik
-exists because askvault is a k8s Service and the k8s-native way to expose it
-is an Ingress. On managed Kubernetes the same manifests run with an
-in-cluster cloudflared + Traefik as a load-balanced ingress; nothing in the
-app layer changes - the NodePort/Caddy hop is the free-tier one-node reality,
-not part of the app design.
+**Edge roles - Caddy vs Traefik.** Two layers, two owners, and for AskVault
+the path is direct: `cloudflared tunnel -> Traefik NodePort :30080` - the
+tunnel config routes `askvault.zachara.dev` to localhost:30080, and Traefik
+(the cluster's ingress controller) reads this repo's k8s Ingress (host +
+`/`, `/chat`) and serves the pod. Caddy is the estate's front door for the
+OTHER `*.zachara.dev` names on :80/:443/:8080 (site, map, 3d, note, dash,
+host apps); it is not in the askvault path. Traefik exists because askvault
+is a k8s Service and the k8s-native way to expose it is an Ingress; Caddy
+exists because one tunnel fronts dozens of host-side services, most of them
+not in k8s. On managed Kubernetes the same manifests run with an in-cluster
+cloudflared + load-balanced Traefik ingress; nothing in the app layer
+changes.
 
 Two repositories, deliberately:
 
