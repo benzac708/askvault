@@ -587,7 +587,7 @@ $index_block
     fetch("/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ question: question, k: 3 })
+      body: JSON.stringify({ question: question, k: 5 })
     }).then(function (res) {
       return res.json().catch(function () { return null; }).then(function (body) {
         if (res.status === 429) {

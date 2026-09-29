@@ -65,7 +65,7 @@ app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 # Retrieval depth. Declared once and used by both entry points so the JSON API
 # and the no-JavaScript form cannot quietly disagree about how much context a
 # question gets.
-DEFAULT_K = 3
+DEFAULT_K = 5
 
 
 class ChatRequest(BaseModel):
