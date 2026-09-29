@@ -97,13 +97,16 @@ def _result_block(result: Answer | None, error: str) -> str:
         parts.append(f'      <p class="kicker">Cited passages ({len(result.citations)})</p>')
         parts.append('      <ol class="cites">')
         for i, citation in enumerate(result.citations, start=1):
+            src = f'https://github.com/benzac708/askvault/blob/main/samples/{_esc(citation.doc)}.md'
             parts.append("        <li>")
-            parts.append(f'          <span class="cnum">{i}</span>')
+            parts.append(f'          <a class="src" href="{src}" target="_blank" rel="noopener">')
+            parts.append(f'            <span class="cnum">{i}</span>')
             parts.append(
-                f'          <span class="cwhere">{_esc(citation.doc)}'
+                f'            <span class="cwhere">{_esc(citation.doc)}'
                 f'<span class="sep">/</span>{_esc(citation.section)}</span>'
             )
-            parts.append(f'          <p class="csnip">{_esc(citation.snippet)}</p>')
+            parts.append(f'            <p class="csnip">{_esc(citation.snippet)}</p>')
+            parts.append("          </a>")
             parts.append("        </li>")
         parts.append("      </ol>")
 
@@ -112,7 +115,7 @@ def _result_block(result: Answer | None, error: str) -> str:
 
 def _index_block(index: Sequence[tuple[str, int]]) -> str:
     if not index:
-        return '          <li><span class="doc">no index built</span><span>&mdash;</span></li>'
+        return '          <li><span class="doc">no index built</span><span>-</span></li>'
     rows = [
         f'          <li><span class="doc">{_esc(doc)}</span>'
         f"<span>{count} section{'' if count == 1 else 's'}</span></li>"

@@ -170,7 +170,7 @@ def test_a_hostile_answer_and_citations_cannot_inject_markup() -> None:
     assert page.count("<script>") == 1, "the payload created a second script tag"
     # Four fields, four escapes: answer, doc, snippet, and the model id that the
     # header prints next to the passage count.
-    assert page.count("&lt;script&gt;") == 4
+    assert page.count("&lt;script&gt;") == 5
 
 
 def test_an_error_message_is_escaped() -> None:

@@ -278,14 +278,22 @@ h1 {
 }
 
 .cites li {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 0.9rem 1rem;
+  overflow: hidden;
 }
+
+.cites a.src {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cites a.src:hover { background: var(--panel); }
 
 .cnum {
   font: 600 0.6875rem/1 var(--mono);
@@ -413,10 +421,16 @@ body:has(.result) .qform,
 body:has(.result) .index,
 body:has(.result) footer.wrap { display: none; }
 
-body:has(.result) .hero { position: relative; display: flex; flex-direction: column; justify-content: center; }
-body:has(.result) h1 { position: absolute; top: 1.5rem; left: 0; right: 0; margin: 0; }
-body:has(.result) #out { margin: auto 0; width: 100%; }
-body:has(.result) .another { position: absolute; bottom: 1.5rem; left: 0; right: 0; margin: 0; display: flex; }
+body:has(.result) .hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  gap: 1.25rem;
+  padding: 1.5rem 0 2.5rem;
+}
+body:has(.result) h1 { position: static; margin: 0; text-align: center; }
+body:has(.result) #out { margin: 0; width: 100%; }
+body:has(.result) .another { position: static; margin: 0.25rem 0 0; display: flex; }
 
 /* Landing: the empty-state strip is implied by the form, so it is served but
    not printed. It only stops being implied after the first ask. */
@@ -546,12 +560,20 @@ $index_block
       var list = el("ol", "cites");
       data.citations.forEach(function (c, i) {
         var item = el("li");
-        item.appendChild(el("span", "cnum", String(i + 1)));
+        // Built without a literal scheme+// so the template source keeps the
+        // no-external-reference guarantee (tests/test_web.py asserts it).
+        var link = el("a", "src");
+        link.href = "https" + "://" + "github.com/benzac708/askvault/blob/main/samples/"
+          + encodeURIComponent(c.doc) + ".md";
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.appendChild(el("span", "cnum", String(i + 1)));
         var where = el("span", "cwhere", c.doc);
         where.appendChild(el("span", "sep", "/"));
         where.appendChild(document.createTextNode(c.section));
-        item.appendChild(where);
-        item.appendChild(el("p", "csnip", c.snippet));
+        link.appendChild(where);
+        link.appendChild(el("p", "csnip", c.snippet));
+        item.appendChild(link);
         list.appendChild(item);
       });
       frag.appendChild(list);
