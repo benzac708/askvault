@@ -8,39 +8,38 @@
 <meta name="description" content="AskVault - a retrieval-augmented question-answering service over an internal documentation corpus, running on Kubernetes.">
 <style>
 /*
-  Black, sharp, one column. The card-catalogue metaphor is gone: no spine, no
-  borders that carry meaning, no second column, no serif. Separation comes from
-  whitespace and type weight, and colour is spent only where it means something
-  (the accent is focus, error and hover - nothing else).
+  Dark, layered, one column: the planner-style surface applied to a
+  single-question page. Depth comes from panels, not borders that carry
+  meaning: the composer is a raised card, the answer is a raised card, the
+  rail is a quiet set of cards, and the one accent colour is spent where it is
+  meaningful - active interaction, citations, and errors. Nothing else.
 
-  One composition, three register changes: the wordmark, then a single question
-  held dead centre of the whole band, then one quiet rail of receipts under a
-  single hairline (what is indexed, how it answers, who served it). Nothing else
-  competes - the rail is one block, not three.
+  One composition, three register changes: the wordmark bar, then one
+  question held dead centre of the whole band, then one quiet rail under it.
+  The answered state reuses the same machinery: chrome and rail are
+  unprinted, and the hero alone fills the screen again.
 
-  Vertical centring is the sticky-footer flex pattern, not a magic viewport
-  height: the body is a column, the hero grows to fill everything between the
-  wordmark and the rail, and `place-content: center` centres the question in
-  exactly the space it owns. The rail therefore starts exactly at the fold and
-  nothing peeks from below the fold into the first screen. The answered state
-  reuses the same machinery: chrome and rail are unprinted, and the hero alone
-  fills the screen again.
-
-  Still one file, no build step, no web fonts, no external requests (D27).
-  The substitution rule and the escape contract in app/web/render.py still
-  apply: this stylesheet and script live inside the same template file and say
+  Still one file, no build step, no web fonts, no external requests. The
+  substitution rule and the escape contract in app/web/render.py still apply:
+  this stylesheet and script live inside the same template file and say
   nothing about the placeholder syntax, so the page keeps rendering whole.
 */
 
 :root {
-  --bg:       #000000;
-  --ink:      #f4f1ea;
-  --ink-2:    #cfcac0;
-  --muted:    #8f8a80;
-  --rule:     #625b50;
-  --accent:   #e8684a;
-  --measure:  42rem;
-  --masthead: 2.6rem;
+  --bg:       #0f0f0f;
+  --panel:    #171717;
+  --panel-2:  #1d1d1d;
+  --line:     #2a2a2a;
+  --muted:    #6d6d6d;
+  --text:     #e8e8e8;
+  --soft:     #a3a3a3;
+  --accent:   #d4a017;
+  --good:     #9ae6b4;
+  --danger:   #f19a9a;
+  --urgent:   #f04848;
+  --measure:  44rem;
+  --masthead: 3rem;
+  --radius:   14px;
   --sans: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
 }
@@ -54,7 +53,7 @@ body {
   min-height: 100vh;
   min-height: 100svh;
   background: var(--bg);
-  color: var(--ink);
+  color: var(--text);
   font: 400 16px/1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
   display: flex;
@@ -62,6 +61,7 @@ body {
 }
 
 a { color: inherit; }
+button { font: inherit; cursor: pointer; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px;
@@ -73,15 +73,17 @@ a { color: inherit; }
   max-width: var(--measure);
   margin: 0 auto;
   padding: 0 1.5rem;
+  width: 100%;
 }
 
-/* ---------- masthead: one word, a fixed-height band ---------- */
+/* ---------- masthead: one word, then a quiet label ---------- */
 
 .masthead {
   height: var(--masthead);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid var(--line);
 }
 
 .wordmark {
@@ -90,7 +92,14 @@ a { color: inherit; }
   text-decoration: none;
   font: 500 0.8125rem/1 var(--mono);
   letter-spacing: 0.08em;
-  color: var(--ink);
+  color: var(--text);
+}
+
+.masthead .tagline {
+  font: 400 0.6875rem/1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-transform: uppercase;
 }
 
 /* ---------- the hero: one question, dead centre ---------- */
@@ -98,264 +107,289 @@ a { color: inherit; }
 main {
   flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
 }
 
 .hero {
-  flex: 1 1 auto;
-  display: grid;
-  place-content: center;
-  margin: 0 auto;
-  max-width: var(--measure);
-  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2.5rem 0;
 }
-
-.kicker {
-  margin: 0 0 1.1rem;
-  font: 400 0.6875rem/1.5 var(--mono);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.kicker .meta { letter-spacing: 0.04em; text-transform: none; color: var(--muted); }
 
 h1 {
-  margin: 0 0 1.75rem;
-  font: 600 clamp(1.75rem, 4.5vw, 2.5rem)/1.12 var(--sans);
+  font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+  font-weight: 700;
   letter-spacing: -0.02em;
-  text-wrap: balance;
+  line-height: 1.2;
+  margin: 0;
 }
 
-.standfirst {
-  margin: 1.5rem 0 0;
-  max-width: 36ch;
-  color: var(--ink-2);
-  font-size: 0.9375rem;
-}
-
-/* The whole interaction: a hairline, and one sharp button. */
+/* ---------- the composer: raised card, planner-style ---------- */
 
 .qform {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
   align-items: center;
-  gap: 1rem;
-  border-bottom: 1px solid var(--rule);
-  transition: border-color 140ms ease;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  transition: border-color 0.15s ease;
 }
 
-.qform:focus-within { border-bottom-color: var(--accent); }
+.qform:focus-within { border-color: var(--accent); }
 
 .qform input {
-  flex: 1 1 auto;
   min-width: 0;
-  padding: 0.75rem 0;
-  border: 0;
+  height: 3rem;
   background: transparent;
-  color: var(--ink);
-  font: 400 1rem/1.4 var(--mono);
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
 }
 
-.qform input:focus { outline: none; }
 .qform input::placeholder { color: var(--muted); }
 
 .qform button {
-  flex: none;
-  margin: 0;
-  padding: 0.7rem 1.4rem;
+  min-width: 5.5rem;
+  height: 3rem;
   border: 0;
-  border-radius: 0;
-  background: var(--ink);
-  color: #000;
-  font: 600 0.75rem/1 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: opacity 140ms ease;
+  border-radius: 12px;
+  background: #e8e8e8;
+  color: #111;
+  font-weight: 760;
+  font-size: 0.9375rem;
+  transition: opacity 0.15s ease, transform 0.05s ease;
 }
 
 .qform button:hover { opacity: 0.88; }
-.qform button:active { opacity: 0.7; }
+.qform button:active { opacity: 0.7; transform: translateY(1px); }
 
-/* Suggestions, not buttons: quiet text that only admits it is clickable on
-   hover. No underline allowed to shout on the resting hero. */
+.standfirst {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ---------- the example strip: chips, not middots ---------- */
+
 .examples {
-  margin: 1.1rem 0 0;
-  font: 400 0.75rem/1.7 var(--mono);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 
-.examples button {
-  border: 0; background: none; padding: 0;
-  color: var(--ink-2);
-  font: inherit;
-  cursor: pointer;
+.examples .try { font-weight: 600; }
+
+.chip {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--soft);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.examples button:hover {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--accent);
+.chip:hover { color: var(--text); border-color: var(--accent); }
+
+/* ---------- answer view ---------- */
+
+#out { display: flex; flex-direction: column; gap: 1rem; }
+
+.kicker {
+  font: 600 0.6875rem/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-/* ---------- after the ask: one column, generous lines ---------- */
+.kicker .meta {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.result {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.result.ungrounded {
+  border-color: rgba(241, 152, 152, 0.45);
+  background: linear-gradient(180deg, rgba(240, 72, 72, 0.08), transparent 60%), var(--panel);
+}
 
 .prose {
+  font-size: 1.0625rem;
+  line-height: 1.7;
   margin: 0;
-  font: 400 1.0625rem/1.7 var(--sans);
-  color: var(--ink);
   white-space: pre-wrap;
-  overflow-wrap: break-word;
 }
 
-/* No retrieval, no authority: the canned reply drops to the muted register. */
-.ungrounded .prose { color: var(--muted); }
+.pending { color: var(--soft); margin: 0; }
+.notice { color: var(--danger); margin: 0; }
 
 .cites {
   list-style: none;
-  margin: 1.5rem 0 0;
+  margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .cites li {
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  padding: 0.8rem 0;
-  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
 }
 
 .cnum {
-  font: 400 0.75rem/1.7 var(--mono);
-  color: var(--muted);
+  font: 600 0.6875rem/1 var(--mono);
+  color: var(--accent);
 }
 
-.cwhere { font: 400 0.8125rem/1.7 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
-.cwhere .sep { color: var(--muted); padding: 0 0.2rem; }
+.cwhere {
+  font: 500 0.75rem/1.2 var(--mono);
+  color: var(--soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cwhere .sep { color: var(--muted); }
 
 .csnip {
-  grid-column: 2;
-  margin: 0.15rem 0 0;
-  font-size: 0.9rem;
-  line-height: 1.65;
-  color: var(--ink-2);
-}
-
-.notice {
+  color: var(--muted);
+  font-size: 0.8125rem;
   margin: 0;
-  font-size: 0.9375rem;
-  color: var(--ink-2);
 }
 
-.pending { margin: 0; font: 400 0.8125rem/1.6 var(--mono); color: var(--muted); }
+.another { margin: 0.25rem 0 0; }
 
-/* ---------- the rail: one hairline, then the receipts ---------- */
+.another a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--soft);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.another a:hover { color: var(--text); border-color: var(--accent); }
+
+/* ---------- the rail: quiet cards under one hairline ---------- */
 
 .index {
-  border-top: 1px solid var(--rule);
-  padding: 1.4rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
 }
 
 .idx {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .idx li {
-  display: inline;
-  font: 400 0.75rem/1.9 var(--mono);
-  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font: 400 0.75rem/1.2 var(--mono);
+  color: var(--soft);
 }
 
-.idx li + li::before {
-  content: "·";
-  color: var(--rule);
-  margin: 0 0.7rem;
+.idx li.total {
+  color: var(--muted);
+  border-style: dashed;
 }
 
-.idx li span:last-child { color: var(--muted); }
-
-/* The count leads the list and reads as part of one line, not a heading. */
-.idx .total { color: var(--muted); }
-
-details { margin-top: 1.4rem; }
+details {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 0.85rem 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
 
 summary {
   cursor: pointer;
-  list-style: none;
-  font: 400 0.6875rem/1.5 var(--mono);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
+  color: var(--soft);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
-summary::-webkit-details-marker { display: none; }
+summary:hover { color: var(--text); }
 
-summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details .note { margin: 0.75rem 0 0; }
 
-.note {
-  margin: 1rem 0 0;
-  font-size: 0.84375rem;
-  line-height: 1.7;
-  color: var(--ink-2);
-  max-width: 40rem;
-}
-
-.note + .note { margin-top: 0.7rem; }
-.note b { color: var(--ink); font-weight: 600; }
-.note code { font-family: var(--mono); font-size: 0.95em; color: var(--ink-2); }
-
-/* ---------- footer: who served this, in one line; part of the rail's quiet ---------- */
+/* ---------- footer: who served this, in one line ---------- */
 
 footer.wrap {
-  margin-top: 1.6rem;
-  padding: 0 1.5rem 2.5rem;
-  font: 400 0.75rem/1.7 var(--mono);
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+  padding-bottom: 2.5rem;
   color: var(--muted);
+  font-size: 0.8125rem;
 }
 
 footer p { margin: 0; }
-footer a { text-underline-offset: 3px; text-decoration-color: var(--rule); }
-footer a:hover { color: var(--accent); }
 
-/* ---------- answered: the hero becomes the page, nothing else ---------- */
+/* ---------- answered state: chrome and rail fall away ----------
 
-.another {
-  display: none;
-  margin: 1.75rem 0 0;
-  font: 400 0.75rem/1.6 var(--mono);
-}
+   With an answer in view, the page is just the answer: the landing helpers
+   and the whole rail are unprinted, and the hero centres the answer exactly
+   as it centred the question. Served markup is untouched - the block is
+   merely hidden. Because the hero is the body's only flex-grown child once
+   the rail is gone, it owns the whole screen and the answer centres within
+   it. */
 
-.another a {
-  color: var(--muted);
-  text-underline-offset: 3px;
-  text-decoration-color: var(--rule);
-}
-
-.another a:hover { color: var(--accent); text-decoration-color: var(--accent); }
-
-/* With an answer in view, the page is just the answer: the landing helpers and
-   the whole rail fall away, and the hero centres the answer exactly as it
-   centred the question. Served markup is untouched - the block is merely
-   unprinted. Because the hero is the body's only flex-grown child once the
-   rail is gone, it owns the whole screen and the answer centres within it. */
 body:has(.result) .standfirst,
 body:has(.result) .examples,
 body:has(.result) .qform,
 body:has(.result) .index,
-body:has(.result) footer { display: none; }
+body:has(.result) footer.wrap { display: none; }
 
-/* The answer itself becomes the focal point the form was on the landing:
-   dead centre. The question pins to the top edge and the exit path to the
-   bottom edge; both sit out of flow so the answer owns the whole band and
-   centres within it exactly, however tall or short it is. */
-body:has(.result) .hero { position: relative; display: flex; flex-direction: column; }
-body:has(.result) h1 { position: absolute; top: 2rem; left: 0; right: 0; margin: 0; }
-body:has(.result) #out { margin: auto 0; }
-body:has(.result) .another { position: absolute; bottom: 2rem; left: 0; right: 0; margin: 0; }
-
-body:has(.result) .another { display: block; }
+body:has(.result) .hero { position: relative; display: flex; flex-direction: column; justify-content: center; }
+body:has(.result) h1 { position: absolute; top: 1.5rem; left: 0; right: 0; margin: 0; }
+body:has(.result) #out { margin: auto 0; width: 100%; }
+body:has(.result) .another { position: absolute; bottom: 1.5rem; left: 0; right: 0; margin: 0; display: flex; }
 
 /* Landing: the empty-state strip is implied by the form, so it is served but
    not printed. It only stops being implied after the first ask. */
@@ -373,6 +407,7 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
 
 <header class="wrap masthead">
   <a class="wordmark" href="/">AskVault</a>
+  <span class="tagline">RAG over org docs</span>
 </header>
 
 <main class="wrap">
@@ -388,15 +423,16 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
     </form>
 
     <p class="standfirst">
-      Every answer is grounded in the passages listed beneath it &mdash; nothing else.
+      Every answer is grounded in the passages listed beneath it, nothing else.
     </p>
 
-    <p class="examples">try
-      <button type="button" data-q="how do I request production access?">production access</button> &middot;
-      <button type="button" data-q="what do I do if a service is down?">a service is down</button> &middot;
-      <button type="button" data-q="how do I rotate a leaked credential?">leaked credential</button> &middot;
-      <button type="button" data-q="what is the onboarding checklist?">onboarding</button> &middot;
-      <button type="button" data-q="how do I price a banana?">unanswerable</button>
+    <p class="examples">
+      <span class="try">try</span>
+      <button type="button" class="chip" data-q="how do I request production access?">production access</button>
+      <button type="button" class="chip" data-q="what do I do if a service is down?">a service is down</button>
+      <button type="button" class="chip" data-q="how do I rotate a leaked credential?">leaked credential</button>
+      <button type="button" class="chip" data-q="what is the onboarding checklist?">onboarding</button>
+      <button type="button" class="chip" data-q="how do I price a banana?">unanswerable</button>
     </p>
 
     <section id="out" aria-live="polite" aria-busy="false">
@@ -422,7 +458,7 @@ $index_block
       </p>
       <p class="note">
         The model sees only the passages listed under each answer. If nothing
-        matches, the reply says so instead of guessing &mdash; a wrong answer
+        matches, the reply says so instead of guessing, because a wrong answer
         with a citation is worse than no answer.
       </p>
     </details>
@@ -433,7 +469,7 @@ $index_block
 <footer class="wrap">
   <p>
     Served by one replica behind Traefik, deployed by Argo CD, instrumented
-    with Prometheus &mdash; /readyz reports index state.
+    with Prometheus - /readyz reports index state.
   </p>
 </footer>
 
@@ -539,7 +575,7 @@ $index_block
       show(render(data));
       var head = document.querySelector("h1");
       if (head) { head.textContent = question; }
-      try { document.title = question + " \u2014 AskVault"; } catch (e) { /* older browsers */ }
+      try { document.title = question + " - AskVault"; } catch (e) { /* older browsers */ }
       try { history.replaceState(null, "", "#" + encodeURIComponent(question)); } catch (e) { /* older browsers */ }
     }).catch(function (err) {
       show(fail(err.message || "The request failed."));
