@@ -92,7 +92,7 @@ def _result_block(result: Answer | None, error: str) -> str:
     if result.citations:
         parts.append('      <ol class="cites">')
         for i, citation in enumerate(result.citations, start=1):
-            src = f'https://github.com/benzac708/askvault/blob/main/samples/{_esc(citation.doc)}.md'
+            src = f"https://github.com/benzac708/askvault/blob/main/samples/{_esc(citation.doc)}.md"
             parts.append("        <li>")
             parts.append(f'          <a class="src" href="{src}" target="_blank" rel="noopener">')
             parts.append(f'            <span class="cnum">{i}</span>')

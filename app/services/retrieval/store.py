@@ -80,7 +80,66 @@ def manifest(db_path: str | None = None) -> list[tuple[str, int]]:
 # ranking (a question about a down service out-ranks nothing - the filler
 # words match everything). They are stripped before the expression is built.
 _STOPWORDS = frozenset(
-    "a an and are as at be been but by do does did for from had has have how i if in is it its my no not of on or our so that the their them then there these they this to too up was we were what when where which who why will with you your".split()
+    [
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "been",
+        "but",
+        "by",
+        "do",
+        "does",
+        "did",
+        "for",
+        "from",
+        "had",
+        "has",
+        "have",
+        "how",
+        "i",
+        "if",
+        "in",
+        "is",
+        "it",
+        "its",
+        "my",
+        "no",
+        "not",
+        "of",
+        "on",
+        "or",
+        "our",
+        "so",
+        "that",
+        "the",
+        "their",
+        "them",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "to",
+        "too",
+        "up",
+        "was",
+        "we",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "who",
+        "why",
+        "will",
+        "with",
+        "you",
+        "your",
+    ]
 )
 
 
@@ -92,10 +151,7 @@ def _match_expr(question: str) -> str:
     content words (stopwords stripped) and OR-ing them is both safe and gives
     OR semantics, which suits recall for short questions.
     """
-    words = [
-        w for w in _WORDS.findall(question.lower())
-        if w not in _STOPWORDS
-    ]
+    words = [w for w in _WORDS.findall(question.lower()) if w not in _STOPWORDS]
     if not words:
         words = _WORDS.findall(question.lower())
     return " OR ".join(f'"{w}"' for w in words)

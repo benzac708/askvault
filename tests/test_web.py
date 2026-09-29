@@ -22,11 +22,10 @@ reason.
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from urllib.parse import urlencode
 
 import pytest
-from pathlib import Path
-
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
@@ -208,7 +207,14 @@ def test_the_index_page_renders_without_javascript(client: TestClient) -> None:
 def test_the_index_lists_the_documents_that_were_actually_indexed(client: TestClient) -> None:
     """The rail is read from the index, so it cannot advertise a dead document."""
     page = client.get("/").text
-    for doc in ("onboarding", "faq-it", "access-control", "incident-response", "askvault-gitops", "askvault-security"):
+    for doc in (
+        "onboarding",
+        "faq-it",
+        "access-control",
+        "incident-response",
+        "askvault-gitops",
+        "askvault-security",
+    ):
         assert doc in page, f"{doc} is indexed but missing from the page"
     n = sum(
         1
