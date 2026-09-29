@@ -128,8 +128,8 @@ Retrieval is SQLite FTS5 with BM25 ranking. No embeddings, no vector database.
 
 The honest consequence: the query builder ORs every token, so **any** word
 landing anywhere in the corpus returns passages. "How do I price a banana"
-returns three passages, because `how`, `do`, `a` and `i` all appear in the
-corpus. There is no relevance floor.
+fills the whole passage window with irrelevant hits, because `how`, `do`, `a`
+and `i` all appear in the corpus; there is no relevance floor.
 
 This is the deliberate price of zero infrastructure. High recall, no
 precision. Two things follow, and both are load-bearing:
@@ -194,7 +194,10 @@ Then open http://127.0.0.1:8000 and ask something the corpus covers:
 - "What should I do first during an incident?"
 
 The corpus is the `samples/` directory: an onboarding guide, an access-control
-policy, an incident-response runbook, and an IT FAQ.
+policy, an incident-response runbook, an IT FAQ, and AskVault's own
+documentation (architecture, deployment, GitOps, retrieval, configuration,
+security, rebuild, observability) - the live app can answer questions about
+itself.
 
 ---
 
