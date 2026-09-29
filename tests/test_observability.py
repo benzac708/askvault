@@ -11,13 +11,20 @@ import subprocess
 import sys
 
 import pytest
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
 from app.core.logging import JsonFormatter, configure_logging
 from app.main import app
 
-CORPUS_SECTIONS = 13
+CORPUS_SECTIONS = sum(
+    1
+    for md in Path(__file__).resolve().parents[1].joinpath("samples").rglob("*.md")
+    for line in md.read_text(encoding="utf-8").splitlines()
+    if line.startswith("## ")
+)
 
 
 def build_client(monkeypatch, tmp_path, **overrides):

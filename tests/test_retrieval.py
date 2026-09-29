@@ -8,8 +8,14 @@ from app.services.retrieval.models import Passage
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLES = REPO_ROOT / "samples"
 
-# 3 + 4 + 3 + 3 H2 sections across the four corpus documents.
-EXPECTED_PASSAGES = 13
+# The indexed section count is derived from the corpus, not hard-coded:
+# a new document adds sections and this stays true.
+EXPECTED_PASSAGES = sum(
+    1
+    for md in SAMPLES.rglob("*.md")
+    for line in md.read_text(encoding="utf-8").splitlines()
+    if line.startswith("## ")
+)
 
 
 @pytest.fixture

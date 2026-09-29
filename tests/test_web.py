@@ -25,6 +25,8 @@ import re
 from urllib.parse import urlencode
 
 import pytest
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
@@ -206,9 +208,15 @@ def test_the_index_page_renders_without_javascript(client: TestClient) -> None:
 def test_the_index_lists_the_documents_that_were_actually_indexed(client: TestClient) -> None:
     """The rail is read from the index, so it cannot advertise a dead document."""
     page = client.get("/").text
-    for doc in ("onboarding", "faq-it", "access-control", "incident-response"):
+    for doc in ("onboarding", "faq-it", "access-control", "incident-response", "askvault-gitops", "askvault-security"):
         assert doc in page, f"{doc} is indexed but missing from the page"
-    assert "13 sections indexed" in page
+    n = sum(
+        1
+        for md in Path(__file__).resolve().parents[1].joinpath("samples").rglob("*.md")
+        for line in md.read_text(encoding="utf-8").splitlines()
+        if line.startswith("## ")
+    )
+    assert f"{n} sections indexed" in page
 
 
 def test_a_form_post_renders_the_answer_with_its_citations(client: TestClient) -> None:
