@@ -35,7 +35,7 @@ than trusting that a command succeeded.
 | `30-traefik.sh` | Traefik v3 as NodePort, CRDs off, endpoint published | 10 |
 | `40-cloudflare.sh` | Tunnel ingress rule → NodePort 30080 | 30 |
 | `45-reset-app.sh` | **Drop the app layer** (2 Applications, 2 namespaces) so 50 builds it from nothing. Skips on a clean host. | 20, 40 |
-| `50-gitops.sh` | Deploy key, repo registration, AppProject + Applications, both secrets | 20, 40, 45 |
+| `50-gitops.sh, 51-grafana-link.sh` | Deploy key, repo registration, AppProject + Applications, both secrets | 20, 40, 45 |
 | `31-monitoring.sh` | kube-prometheus-stack, ServiceMonitor, estate Grafana wiring | 50 |
 | `rebuild.sh` | **Runs the whole rebuild in order.** `--from-zero` tears down first. Not a step in it. | - |
 | `90-teardown.sh` | Destroy in the correct order. Dry-run by default. Ends by printing one command. | - |
@@ -52,9 +52,9 @@ teardown:  Applications → app namespaces → helm releases → argocd ns → C
 ```
 
 The **number prefix is thematic, not positional**, and `31` and `45` are both
-proof of it. `31-monitoring.sh` runs *after* `50-gitops.sh`, because a
+proof of it. `31-monitoring.sh` runs *after* `50-gitops.sh, 51-grafana-link.sh`, because a
 ServiceMonitor has nothing to scrape until the Deployment it watches exists.
-`45-reset-app.sh` runs *before* `50-gitops.sh`, because a warm namespace makes
+`45-reset-app.sh` runs *before* `50-gitops.sh, 51-grafana-link.sh`, because a warm namespace makes
 `50` take its "already exists" branch. Sorting the directory and running
 whatever comes out gives a green run with an empty dashboard and - the same
 defect, quieter - a green run whose secrets were written into a namespace the
@@ -68,7 +68,7 @@ class of trap applies to any operator that owns CRs.
 
 ## Why `45-reset-app.sh` exists
 
-Without it, a rebuild inherits the previous run's namespaces. `50-gitops.sh`
+Without it, a rebuild inherits the previous run's namespaces. `50-gitops.sh, 51-grafana-link.sh`
 handles both cases and prints `ok` for both:
 
 ```
@@ -157,7 +157,7 @@ do for you. Naming the gap is worth more than pretending there isn't one.
    stdin is not a terminal. It used to only refuse, which turned the one
    command that rebuilds everything into two commands and put a hand-typed
    secret on the command line where it lands in shell history. The prompted
-   value is `export`ed so the child `50-gitops.sh` sees it and does not ask a
+   value is `export`ed so the child `50-gitops.sh, 51-grafana-link.sh` sees it and does not ask a
    second time. An empty key is refused: an empty Secret value satisfies a
    required `secretKeyRef`, so the pod would start and answer nothing.
 9. **A sequence written twice is wrong in one of the two places.** The teardown

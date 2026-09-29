@@ -342,6 +342,7 @@ hack/20-argocd.sh         # install Argo CD
 hack/30-traefik.sh        # Traefik as NodePort
 hack/40-cloudflare.sh     # tunnel routes
 hack/50-gitops.sh         # apply the Argo objects
+hack/51-grafana-link.sh   # re-point the host Grafana at the new Prometheus ClusterIP
 hack/90-teardown.sh       # delete in the correct order
 hack/99-acceptance.sh     # the drill asserts
 ```
