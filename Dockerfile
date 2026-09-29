@@ -73,8 +73,16 @@ COPY samples ./samples
 # the code into site-packages, which is what makes the venv relocatable and the
 # two-stage split work at all. Nothing in the image needs to be importable from a
 # source tree, because the source tree is not in the image.
+#
+# --reinstall-package is load-bearing for a different reason: uv sync is
+# idempotent against the lockfile, so an edit to web/template.html or a prompt
+# that does not bump the project version looks "already installed" to it. A
+# cached builder venv then carries the previous commit's app forward and the
+# image silently ships stale UI (this bit the dead-centre ship). Reinstalling
+# the project on every build is cheap -- the dependency layer above is what is
+# slow -- and makes the baked code exactly the commit being tagged.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-editable
+    uv sync --locked --no-dev --no-editable --reinstall-package askvault
 
 # ----------------------------------------------------------------- runtime --
 
