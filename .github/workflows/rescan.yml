@@ -1,0 +1,47 @@
+name: rescan
+
+# Weekly vulnerability re-scan of the published image with a fresh Trivy DB.
+# The build gate only fails on FIXABLE CRITICALs; this job is the alerting arm
+# of that policy: the moment an upstream fix is published for a previously
+# unfixed CRITICAL, a new issue appears here instead of waiting for a push.
+#
+# Runs on a schedule, so no seal of green changes on push; the deployed image
+# is rescanned every Monday.
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  AWS_ACCESS_KEY_ID: "test"
+  AWS_SECRET_ACCESS_KEY: "test"
+
+jobs:
+  rescan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan the published main image (fresh DB)
+        id: scan
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --format json --output /tmp/scan.json \
+            ghcr.io/benzac708/askvault:main || true
+          count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL" and .FixedVersion != null)] | length' /tmp/scan.json)
+          echo "fixable_critical=$count" >> "$GITHUB_OUTPUT"
+          jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL" and .FixedVersion != null)] | .[] | "- \(.VulnerabilityID) \(.PkgName): \(.FixedVersion)"' /tmp/scan.json | head -10
+
+      - name: Raise an issue when a fix becomes available
+        if: steps.scan.outputs.fixable_critical != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create -R "$GITHUB_REPOSITORY" \
+            --title "Base image: fixable CRITICALs now available" \
+            --body "Weekly rescan of \`ghcr.io/benzac708/askvault:main\` found \
+            ${{ steps.scan.outputs.fixable_critical }} fixable CRITICALs. A \
+            plain rebuild from the same base tag should clear them."
