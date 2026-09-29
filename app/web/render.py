@@ -80,7 +80,7 @@ def _result_block(result: Answer | None, error: str) -> str:
 
     grounded = result.passages_considered > 0
     count = result.passages_considered
-    plural = "passage" if count == 1 else "passages"
+
     state = "result" if grounded else "result ungrounded"
 
     parts = [
