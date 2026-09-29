@@ -168,9 +168,9 @@ def test_a_hostile_answer_and_citations_cannot_inject_markup() -> None:
     assert HOSTILE not in page
     assert "<b>x</b>" not in page
     assert page.count("<script>") == 1, "the payload created a second script tag"
-    # Four fields, four escapes: answer, doc, snippet, and the model id that the
-    # header prints next to the passage count.
-    assert page.count("&lt;script&gt;") == 5
+    # Four escapes: answer, citation doc (source line), doc (inside the href)
+    # and snippet.
+    assert page.count("&lt;script&gt;") == 4
 
 
 def test_an_error_message_is_escaped() -> None:
@@ -223,8 +223,10 @@ def test_a_form_post_renders_the_answer_with_its_citations(client: TestClient) -
     body, headers = form("how do I request production access?")
     page = client.post("/", content=body, headers=headers).text
 
-    assert "Answer" in page
-    assert "Cited passages" in page
+    # The trimmed layout drops the "Answer"/"Cited passages" labels; the
+    # citations themselves (and their source links) must still be present.
+    assert 'class="cites"' in page
+    assert 'class="src" href=' in page
     assert "access-control" in page
     # The question comes back in the input so a refresh does not blank the page.
     assert 'value="how do I request production access?"' in page
@@ -252,7 +254,7 @@ def test_a_question_the_corpus_never_mentions_is_marked_ungrounded(client: TestC
     # "Cited passages" heading, so bare substring searches for either word would
     # pass vacuously no matter what the server emitted.
     assert 'class="result ungrounded"' in page
-    assert "0 passages" in page
+    assert 'class="cites"' not in page
     assert 'class="kicker">Cited passages' not in page
 
 

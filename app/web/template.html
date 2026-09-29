@@ -189,8 +189,6 @@ h1 {
   color: var(--muted);
 }
 
-.examples .try { font-weight: 500; color: var(--soft); }
-
 .examples button {
   border: 0;
   background: none;
@@ -434,7 +432,7 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
 <main class="wrap">
 
   <section class="hero">
-    <h1>What does the documentation actually say?</h1>
+    <h1>Ask the documentation.</h1>
     <form class="qform" id="qform" method="post" action="/">
       <label class="sr-only" for="question">Your question</label>
       <input id="question" name="question" type="text" value="$query" maxlength="1000"
@@ -444,11 +442,10 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
     </form>
 
     <p class="standfirst">
-      Every answer is grounded in the passages listed beneath it. The corpus includes this system's own documentation, so you can ask about how AskVault works.
+      Answers are grounded in the passages below. Ask it about itself too.
     </p>
 
     <p class="examples">
-      <span class="try">try</span>
       <button type="button" data-q="how do I request production access?">production access</button>
       <button type="button" data-q="what do I do if a service is down?">a service is down</button>
       <button type="button" data-q="how do I rotate a leaked credential?">leaked credential</button>
@@ -525,18 +522,11 @@ $index_block
   function render(data) {
     var frag = document.createDocumentFragment();
 
-    var head = el("p", "kicker", "Answer");
-    head.appendChild(el("span", "meta",
-      "  " + data.passages_considered + " passage"
-        + (data.passages_considered === 1 ? "" : "s") + "  ·  " + data.model));
-    frag.appendChild(head);
-
     var body = el("div", data.passages_considered ? "result" : "result ungrounded");
     body.appendChild(el("p", "prose", data.answer));
     frag.appendChild(body);
 
     if (data.citations && data.citations.length) {
-      frag.appendChild(el("p", "kicker", "Cited passages"));
       var list = el("ol", "cites");
       data.citations.forEach(function (c, i) {
         var item = el("li");

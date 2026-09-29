@@ -84,17 +84,12 @@ def _result_block(result: Answer | None, error: str) -> str:
     state = "result" if grounded else "result ungrounded"
 
     parts = [
-        (
-            '      <p class="kicker">Answer'
-            f'<span class="meta">  {count} {plural}  &middot;  {_esc(result.model)}</span></p>'
-        ),
         f'      <div class="{state}">',
         f'        <p class="prose">{_esc(result.answer)}</p>',
         "      </div>",
     ]
 
     if result.citations:
-        parts.append(f'      <p class="kicker">Cited passages ({len(result.citations)})</p>')
         parts.append('      <ol class="cites">')
         for i, citation in enumerate(result.citations, start=1):
             src = f'https://github.com/benzac708/askvault/blob/main/samples/{_esc(citation.doc)}.md'
