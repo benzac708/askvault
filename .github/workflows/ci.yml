@@ -183,16 +183,17 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # The built-in GITHUB_TOKEN, not a personal access token. It is scoped to
-      # this repository, expires with the job, and appears in no config file --
-      # which is the whole reason the earlier ghcr credential on this machine
-      # had to be fixed by hand. A PAT in a shell profile rots silently.
+      # Public packages need a PAT, not the built-in token: GitHub denies
+      # GITHUB_TOKEN writes to a PUBLIC ghcr package with
+      # `permission_denied: write_package`. The GHCR_TOKEN secret is a
+      # fine-grained (or classic) PAT scoped to write:packages on this repo,
+      # stored as a repository secret - never in a shell profile.
       - name: Log in to ghcr
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Resolve the image reference
         id: ref
