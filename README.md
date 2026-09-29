@@ -217,8 +217,8 @@ The container is the hardened part, and the secret handling is the weak part.
   with one credential would be ceremony, not security — and the honest version
   of that trade-off is to name it rather than to imply it was not considered.
 - **The image reports vulnerabilities inherited from the Debian base, and the
-  numbers are not small: 5 CRITICAL, 55 HIGH, 104 MEDIUM, 102 LOW, plus 2
-  UNKNOWN.** CI gates on **fixable CRITICAL and HIGH only**, and that count is
+  numbers are not small: 5 CRITICAL, 55 HIGH, 104 MEDIUM, 102 LOW, plus 5
+  UNKNOWN.** CI gates on **fixable CRITICAL only**, and that count is
   **0** — which is why the build passes and why that gate is the honest one:
   gating on unfixed upstream base-image findings would block every build
   forever and teach everyone to bypass the gate.
