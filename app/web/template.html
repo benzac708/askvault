@@ -3,52 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>$page_title</title>
 <meta name="description" content="AskVault — a retrieval-augmented question-answering service over an internal documentation corpus, running on Kubernetes.">
-<meta name="color-scheme" content="light dark">
 <style>
 /*
-  One file, no build step, no web fonts, no external requests. Every typeface
-  is a system stack on purpose: a public demo that phones a font CDN leaks the
-  visitor's IP to a third party and gains a render-blocking dependency, which is
-  a poor trade for a page whose whole point is that it is self-contained.
+  Black, sharp, one column. The card-catalogue metaphor is gone: no spine, no
+  borders that carry meaning, no second column, no serif. Separation comes from
+  whitespace and type weight, and colour is spent only where it means something
+  (the accent is focus, error and hover — nothing else).
 
-  The paper-and-ink palette and the hairline rules are the reference-desk
-  metaphor taken literally — this is a card catalogue, not a SaaS dashboard.
-  The vermilion spine down the left edge is the same signal as a tabbed index
-  card. Restraint is the point: no shadows, no gradients, radius capped at 2px.
+  Still one file, no build step, no web fonts, no external requests (D27).
+  The substitution rule and the escape contract in app/web/render.py still
+  apply: this stylesheet and script live inside the same template file and say
+  nothing about the placeholder syntax, so the page keeps rendering whole.
 */
 
 :root {
-  --paper:    #f2efe8;
-  --card:     #fbf9f4;
-  --ink:      #1b1917;
-  --ink-2:    #4c473e;
-  --muted:    #857e6f;
-  --rule:     #d8d2c4;
-  --rule-2:   #c0b8a6;
-  --accent:   #a3381f;
-  --on-accent:#fffaf6;
-  --warn:     #8a6a1f;
-  --measure:  62ch;
-  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria, serif;
+  --bg:       #000000;
+  --ink:      #f4f1ea;
+  --ink-2:    #cfcac0;
+  --muted:    #8f8a80;
+  --rule:     #625b50;
+  --accent:   #e8684a;
+  --measure:  42rem;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper:    #15140f;
-    --card:     #1d1b15;
-    --ink:      #ece7db;
-    --ink-2:    #b6af9e;
-    --muted:    #8b8474;
-    --rule:     #2f2c23;
-    --rule-2:   #454034;
-    --accent:   #e0764f;
-    --on-accent:#1a1208;
-    --warn:     #d0aa52;
-  }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -57,24 +37,10 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  /* 3px so the fixed spine below never overlaps content. */
-  padding-left: 3px;
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
-  font: 400 16px/1.5 var(--sans);
+  font: 400 16px/1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
-}
-
-/* The spine. Full-height accent rule at the viewport edge, like the bound edge
-   of a filing cabinet. Fixed rather than in flow so long answers scroll under
-   it instead of pushing it off screen. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--accent);
-  z-index: 3;
 }
 
 a { color: inherit; }
@@ -86,125 +52,110 @@ a { color: inherit; }
 }
 
 .wrap {
-  max-width: 68rem;
+  max-width: var(--measure);
   margin: 0 auto;
-  padding: 0 clamp(1rem, 4vw, 2.5rem);
+  padding: 0 1.5rem;
 }
 
-/* ---------- masthead ---------- */
+/* ---------- masthead: one word, nothing else ---------- */
 
 .masthead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  padding: 1.35rem 0 0.85rem;
-  border-bottom: 1px solid var(--rule);
+  padding: 1.6rem 0 0;
 }
 
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   text-decoration: none;
-  font: 500 0.9375rem/1 var(--mono);
-  letter-spacing: 0.06em;
+  font: 500 0.8125rem/1 var(--mono);
+  letter-spacing: 0.08em;
+  color: var(--ink);
 }
 
-/* Drawn rather than typed: a glyph depends on a font the reader may not have,
-   and a missing one leaves a tofu box in the corner of the page. */
-.mark {
-  width: 0.75rem; height: 0.9375rem;
-  border: 1px solid var(--ink);
-  border-left: 3px solid var(--accent);
-  flex: none;
-}
+/* ---------- the hero: one question, dead centre ---------- */
 
-.tagline {
-  margin: 0;
-  font: 400 0.6875rem/1.4 var(--mono);
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--muted);
+.hero {
+  min-height: calc(100svh - 6.5rem);
+  display: grid;
+  place-content: center;
+  padding: 2rem 0;
+  margin: 0 auto;
+  max-width: var(--measure);
+  width: 100%;
 }
-
-/* ---------- section labels ---------- */
 
 .kicker {
-  margin: 0 0 0.7rem;
+  margin: 0 0 1.1rem;
   font: 400 0.6875rem/1.5 var(--mono);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.kicker .meta { letter-spacing: 0.04em; text-transform: none; color: var(--rule-2); }
+.kicker .meta { letter-spacing: 0.04em; text-transform: none; color: var(--muted); }
 
-/* ---------- the query: the hero ---------- */
-
-main { padding: clamp(1.75rem, 5vw, 3.25rem) 0 0; }
-
-.ask { margin: 0 0 clamp(2rem, 5vw, 3.25rem); }
-
-.ask h1 {
-  margin: 0 0 0.15rem;
-  font: 400 clamp(1.5rem, 4.5vw, 2.125rem)/1.15 var(--serif);
-  letter-spacing: -0.01em;
+h1 {
+  margin: 0 0 1.75rem;
+  font: 600 clamp(1.75rem, 4.5vw, 2.5rem)/1.12 var(--sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
-.ask .standfirst {
-  margin: 0.5rem 0 1.5rem;
-  max-width: 52ch;
+.standfirst {
+  margin: 1.5rem 0 0;
+  max-width: 36ch;
   color: var(--ink-2);
   font-size: 0.9375rem;
 }
 
+/* The whole interaction: a hairline, and one sharp button. */
+
 .qform {
   display: flex;
-  align-items: stretch;
-  border-bottom: 2px solid var(--ink);
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--rule);
   transition: border-color 140ms ease;
 }
 
 .qform:focus-within { border-bottom-color: var(--accent); }
 
-/* Mono for the query because a question is a search term typed into an index,
-   not prose. A serif here would suggest you are writing a sentence. */
 .qform input {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 0.7rem 0.25rem 0.7rem 0;
+  padding: 0.75rem 0;
   border: 0;
   background: transparent;
   color: var(--ink);
-  font: 400 clamp(0.9375rem, 2.4vw, 1.1875rem)/1.4 var(--mono);
+  font: 400 1rem/1.4 var(--mono);
 }
 
 .qform input:focus { outline: none; }
-.qform input::placeholder { color: var(--rule-2); }
+.qform input::placeholder { color: var(--muted); }
 
 .qform button {
   flex: none;
-  align-self: center;
-  margin: 0.35rem 0;
-  padding: 0 1.15rem;
+  margin: 0;
+  padding: 0.7rem 1.4rem;
   border: 0;
-  border-radius: 2px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font: 500 0.75rem/1 var(--mono);
-  letter-spacing: 0.14em;
+  border-radius: 0;
+  background: var(--ink);
+  color: #000;
+  font: 600 0.75rem/1 var(--mono);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: filter 140ms ease;
+  transition: opacity 140ms ease;
 }
 
-.qform button:hover { filter: brightness(1.12); }
-.qform button:active { filter: brightness(0.94); }
+.qform button:hover { opacity: 0.88; }
+.qform button:active { opacity: 0.7; }
 
 .examples {
-  margin: 0.85rem 0 0;
+  margin: 1.1rem 0 0;
   font: 400 0.75rem/1.7 var(--mono);
   color: var(--muted);
 }
@@ -215,121 +166,135 @@ main { padding: clamp(1.75rem, 5vw, 3.25rem) 0 0; }
   font: inherit;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rule-2);
+  text-decoration-color: var(--rule);
   cursor: pointer;
 }
 
 .examples button:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
-/* ---------- two columns ---------- */
+/* ---------- after the ask: one column, generous lines ---------- */
 
-.cols { display: grid; gap: clamp(2.25rem, 5vw, 3.5rem); }
-
-@media (min-width: 62rem) {
-  .cols { grid-template-columns: minmax(0, 1fr) 15.5rem; }
-  .rail { position: sticky; top: 1.75rem; align-self: start; }
-}
-
-/* ---------- the answer ---------- */
+main { padding: 0 0 4rem; }
 
 .prose {
   margin: 0;
-  max-width: var(--measure);
-  padding-left: 1.15rem;
-  border-left: 2px solid var(--accent);
-  font: 400 1.1875rem/1.65 var(--serif);
+  font: 400 1.0625rem/1.7 var(--sans);
+  color: var(--ink);
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
 
-/* Ungrounded means retrieval came back empty and the model was shown nothing.
-   The answer is then the canned no-context string, not a model response, and
-   the visual treatment says so rather than letting it read as authoritative. */
-.ungrounded .prose { border-left-color: var(--rule-2); color: var(--ink-2); }
+/* No retrieval, no authority: the canned reply drops to the muted register. */
+.ungrounded .prose { color: var(--muted); }
 
 .cites {
   list-style: none;
-  margin: 1.6rem 0 0;
+  margin: 1.5rem 0 0;
   padding: 0;
-  max-width: var(--measure);
 }
 
 .cites li {
   display: grid;
-  grid-template-columns: 1.6rem minmax(0, 1fr);
-  padding: 0.65rem 0;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  padding: 0.8rem 0;
   border-top: 1px solid var(--rule);
 }
 
 .cnum {
-  font: 400 0.75rem/1.6 var(--mono);
-  color: var(--accent);
+  font: 400 0.75rem/1.7 var(--mono);
+  color: var(--muted);
 }
 
-.cwhere { font: 400 0.8125rem/1.6 var(--mono); overflow-wrap: anywhere; }
-.cwhere .sep { color: var(--rule-2); padding: 0 0.15rem; }
+.cwhere { font: 400 0.8125rem/1.7 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.cwhere .sep { color: var(--muted); padding: 0 0.2rem; }
 
 .csnip {
   grid-column: 2;
-  margin: 0.2rem 0 0;
-  font-size: 0.8438rem;
-  line-height: 1.6;
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
   color: var(--ink-2);
 }
 
 .notice {
   margin: 0;
-  max-width: var(--measure);
-  padding-left: 1.15rem;
-  border-left: 2px solid var(--warn);
   font-size: 0.9375rem;
   color: var(--ink-2);
 }
 
 .pending { margin: 0; font: 400 0.8125rem/1.6 var(--mono); color: var(--muted); }
 
-/* ---------- the index rail ---------- */
+/* ---------- the index: one quiet strip, no borders of its own ---------- */
 
-.rail section + section { margin-top: 2.25rem; }
+.index { margin-top: 3rem; }
 
-.idx { list-style: none; margin: 0; padding: 0; }
-
-.idx li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.4rem 0;
-  border-top: 1px solid var(--rule);
-  font: 400 0.8125rem/1.5 var(--mono);
+.idx {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.idx li span:last-child { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
-.idx .doc { overflow-wrap: anywhere; }
+.idx li {
+  display: inline;
+  font: 400 0.75rem/1.9 var(--mono);
+  color: var(--ink-2);
+}
+
+.idx li + li::before {
+  content: "·";
+  color: var(--rule);
+  margin: 0 0.7rem;
+}
+
+.idx li span:last-child { color: var(--muted); }
 
 .idx-total {
-  margin: 0.6rem 0 0;
+  margin: 0.4rem 0 0;
   font: 400 0.75rem/1.6 var(--mono);
   color: var(--muted);
 }
 
-.note { margin: 0; font-size: 0.8125rem; line-height: 1.65; color: var(--muted); }
+/* ---------- the notes: one click, then the honesty ---------- */
+
+details { margin-top: 3rem; }
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  font: 400 0.6875rem/1.5 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+summary::-webkit-details-marker { display: none; }
+
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.84375rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 40rem;
+}
+
 .note + .note { margin-top: 0.7rem; }
-.note b { color: var(--ink-2); font-weight: 600; }
+.note b { color: var(--ink); font-weight: 600; }
 .note code { font-family: var(--mono); font-size: 0.95em; color: var(--ink-2); }
 
-/* ---------- footer ---------- */
+/* ---------- footer: who served this, in one line ---------- */
 
 footer {
-  margin-top: clamp(2.5rem, 6vw, 4rem);
-  padding: 1rem 0 2.5rem;
+  margin-top: 3.5rem;
+  padding: 1.2rem 0 2.5rem;
   border-top: 1px solid var(--rule);
   font: 400 0.75rem/1.7 var(--mono);
   color: var(--muted);
 }
 
 footer p { margin: 0; }
-footer a { text-underline-offset: 3px; text-decoration-color: var(--rule-2); }
+footer a { text-underline-offset: 3px; text-decoration-color: var(--rule); }
 footer a:hover { color: var(--accent); }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -342,21 +307,14 @@ footer a:hover { color: var(--accent); }
 <body>
 
 <header class="wrap masthead">
-  <a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span>askvault</a>
-  <p class="tagline">Internal docs &middot; lexical retrieval</p>
+  <a class="wordmark" href="/">askvault</a>
 </header>
 
 <main class="wrap">
 
-  <section class="ask">
+  <section class="hero">
     <p class="kicker">Ask the index</p>
     <h1>What does the documentation actually say?</h1>
-    <p class="standfirst">
-      Every word below was indexed from a small corpus of internal documents.
-      The model is given only the passages that matched, and the answer is
-      always shown alongside the exact text it came from.
-    </p>
-
     <form class="qform" id="qform" method="post" action="/">
       <label class="sr-only" for="question">Your question</label>
       <input id="question" name="question" type="text" value="$query" maxlength="1000"
@@ -364,6 +322,10 @@ footer a:hover { color: var(--accent); }
              autocapitalize="off" spellcheck="false" enterkeyhint="send">
       <button type="submit">Ask</button>
     </form>
+
+    <p class="standfirst">
+      Every answer is grounded in the passages listed beneath it &mdash; nothing else.
+    </p>
 
     <p class="examples">try
       <button type="button" data-q="how do I request production access?">production access</button> &middot;
@@ -374,35 +336,33 @@ footer a:hover { color: var(--accent); }
     </p>
   </section>
 
-  <div class="cols">
+  <div class="index">
     <section id="out" aria-live="polite" aria-busy="false">
 $result_block
     </section>
 
-    <aside class="rail">
-      <section>
-        <p class="kicker">Index</p>
-        <ul class="idx">
+    <section>
+      <p class="kicker">Index</p>
+      <ul class="idx">
 $index_block
-        </ul>
-        <p class="idx-total">$passages_total</p>
-      </section>
+      </ul>
+      <p class="idx-total">$passages_total</p>
+    </section>
 
-      <section>
-        <p class="kicker">How this answers</p>
-        <p class="note">
-          Retrieval is <b>lexical</b>: SQLite FTS5 with BM25 ranking over the
-          section text. There are no embeddings and no vector store, so a
-          question that shares no words with a passage will not find it even
-          when it means the same thing.
-        </p>
-        <p class="note">
-          The model sees only the passages listed under each answer. If nothing
-          matches, the reply says so instead of guessing &mdash; a wrong answer
-          with a citation is worse than no answer.
-        </p>
-      </section>
-    </aside>
+    <details>
+      <summary>How this answers</summary>
+      <p class="note">
+        Retrieval is <b>lexical</b>: SQLite FTS5 with BM25 ranking over the
+        section text. There are no embeddings and no vector store, so a
+        question that shares no words with a passage will not find it even
+        when it means the same thing.
+      </p>
+      <p class="note">
+        The model sees only the passages listed under each answer. If nothing
+        matches, the reply says so instead of guessing &mdash; a wrong answer
+        with a citation is worse than no answer.
+      </p>
+    </details>
   </div>
 
 </main>
@@ -451,9 +411,6 @@ $index_block
         + (data.passages_considered === 1 ? "" : "s") + "  ·  " + data.model));
     frag.appendChild(head);
 
-    // The wrapper carries the ungrounded styling, matching the server-rendered
-    // markup: no passages means the model was shown nothing, so the reply is
-    // the canned no-context string and must not read as a real answer.
     var body = el("div", data.passages_considered ? "result" : "result ungrounded");
     body.appendChild(el("p", "prose", data.answer));
     frag.appendChild(body);
@@ -530,8 +487,6 @@ $index_block
     ask(question);
   });
 
-  // The example chips work without the fetch path too, so they only need to set
-  // the value and submit through the same listener.
   Array.prototype.forEach.call(document.querySelectorAll("[data-q]"), function (chip) {
     chip.addEventListener("click", function () {
       input.value = chip.getAttribute("data-q");
