@@ -13,6 +13,19 @@
   whitespace and type weight, and colour is spent only where it means something
   (the accent is focus, error and hover — nothing else).
 
+  One composition, three register changes: the wordmark, then a single question
+  held dead centre of the whole band, then one quiet rail of receipts under a
+  single hairline (what is indexed, how it answers, who served it). Nothing else
+  competes — the rail is one block, not three.
+
+  Vertical centring is the sticky-footer flex pattern, not a magic viewport
+  height: the body is a column, the hero grows to fill everything between the
+  wordmark and the rail, and `place-content: center` centres the question in
+  exactly the space it owns. The rail therefore starts exactly at the fold and
+  nothing peeks from below the fold into the first screen. The answered state
+  reuses the same machinery: chrome and rail are unprinted, and the hero alone
+  fills the screen again.
+
   Still one file, no build step, no web fonts, no external requests (D27).
   The substitution rule and the escape contract in app/web/render.py still
   apply: this stylesheet and script live inside the same template file and say
@@ -27,6 +40,7 @@
   --rule:     #625b50;
   --accent:   #e8684a;
   --measure:  42rem;
+  --masthead: 2.6rem;
   --sans: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
 }
@@ -37,10 +51,14 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
   background: var(--bg);
   color: var(--ink);
   font: 400 16px/1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
 }
 
 a { color: inherit; }
@@ -57,13 +75,13 @@ a { color: inherit; }
   padding: 0 1.5rem;
 }
 
-/* ---------- masthead: one word, nothing else ---------- */
+/* ---------- masthead: one word, a fixed-height band ---------- */
 
 .masthead {
+  height: var(--masthead);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.6rem 0 0;
 }
 
 .wordmark {
@@ -77,11 +95,17 @@ a { color: inherit; }
 
 /* ---------- the hero: one question, dead centre ---------- */
 
+main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .hero {
-  min-height: calc(100svh - 6.5rem);
+  flex: 1 1 auto;
   display: grid;
   place-content: center;
-  padding: 2rem 0;
+  padding: 0 0 var(--masthead);
   margin: 0 auto;
   max-width: var(--measure);
   width: 100%;
@@ -154,6 +178,8 @@ h1 {
 .qform button:hover { opacity: 0.88; }
 .qform button:active { opacity: 0.7; }
 
+/* Suggestions, not buttons: quiet text that only admits it is clickable on
+   hover. No underline allowed to shout on the resting hero. */
 .examples {
   margin: 1.1rem 0 0;
   font: 400 0.75rem/1.7 var(--mono);
@@ -164,17 +190,17 @@ h1 {
   border: 0; background: none; padding: 0;
   color: var(--ink-2);
   font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--rule);
   cursor: pointer;
 }
 
-.examples button:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.examples button:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--accent);
+}
 
 /* ---------- after the ask: one column, generous lines ---------- */
-
-main { padding: 0 0 4rem; }
 
 .prose {
   margin: 0;
@@ -224,9 +250,12 @@ main { padding: 0 0 4rem; }
 
 .pending { margin: 0; font: 400 0.8125rem/1.6 var(--mono); color: var(--muted); }
 
-/* ---------- the index: one quiet strip, no borders of its own ---------- */
+/* ---------- the rail: one hairline, then the receipts ---------- */
 
-.index { margin-top: 3rem; }
+.index {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 0 0;
+}
 
 .idx {
   list-style: none;
@@ -248,15 +277,10 @@ main { padding: 0 0 4rem; }
 
 .idx li span:last-child { color: var(--muted); }
 
-.idx-total {
-  margin: 0.4rem 0 0;
-  font: 400 0.75rem/1.6 var(--mono);
-  color: var(--muted);
-}
+/* The count leads the list and reads as part of one line, not a heading. */
+.idx .total { color: var(--muted); }
 
-/* ---------- the notes: one click, then the honesty ---------- */
-
-details { margin-top: 3rem; }
+details { margin-top: 1.4rem; }
 
 summary {
   cursor: pointer;
@@ -283,12 +307,11 @@ summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .note b { color: var(--ink); font-weight: 600; }
 .note code { font-family: var(--mono); font-size: 0.95em; color: var(--ink-2); }
 
-/* ---------- footer: who served this, in one line ---------- */
+/* ---------- footer: who served this, in one line; part of the rail's quiet ---------- */
 
 footer {
-  margin-top: 3.5rem;
-  padding: 1.2rem 0 2.5rem;
-  border-top: 1px solid var(--rule);
+  margin-top: 1.6rem;
+  padding: 0 0 2.5rem;
   font: 400 0.75rem/1.7 var(--mono);
   color: var(--muted);
 }
@@ -313,18 +336,18 @@ footer a:hover { color: var(--accent); }
 
 .another a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
-/* With an answer in view, the page is just the answer: the landing chrome
-   (eyebrow, form, helpers) and everything below the fold (index, notes,
-   footer) falls away, and the hero centres the answer exactly as it centred
-   the question. Served markup is untouched - the block is merely unprinted. */
-body:has(.result) .hero > .kicker,
+/* With an answer in view, the page is just the answer: the landing helpers and
+   the whole rail fall away, and the hero centres the answer exactly as it
+   centred the question. Served markup is untouched - the block is merely
+   unprinted. Because the hero is the body's only flex-grown child once the
+   rail is gone, it owns the whole screen and the answer centres within it. */
 body:has(.result) .standfirst,
 body:has(.result) .examples,
 body:has(.result) .qform,
 body:has(.result) .index,
 body:has(.result) footer { display: none; }
 
-/* And the answer itself becomes the focal point the form was on the landing:
+/* The answer itself becomes the focal point the form was on the landing:
    dead centre. The question pins to the top edge and the exit path to the
    bottom edge; both sit out of flow so the answer owns the whole band and
    centres within it exactly, however tall or short it is. */
@@ -356,7 +379,6 @@ body:not(:has(.result)) #out .kicker.none + p { display: none; }
 <main class="wrap">
 
   <section class="hero">
-    <p class="kicker">Ask the index</p>
     <h1>What does the documentation actually say?</h1>
     <form class="qform" id="qform" method="post" action="/">
       <label class="sr-only" for="question">Your question</label>
@@ -386,11 +408,10 @@ $result_block
   </section>
 
   <section class="index">
-    <p class="kicker">Index</p>
     <ul class="idx">
+      <li class="total">$passages_total</li>
 $index_block
     </ul>
-    <p class="idx-total">$passages_total</p>
 
     <details>
       <summary>How this answers</summary>
