@@ -238,13 +238,11 @@ def test_a_question_the_corpus_never_mentions_is_marked_ungrounded(client: TestC
     authoritative, which is the exact failure a RAG demo must not have.
 
     The trigger here is a total term miss, and that is not a coincidence --
-    retrieval is an FTS5 OR-join with no relevance floor (FINDING 12), so a
-    plausible-but-unrelated question like "how do I price a banana?" still
-    matches a few passages on stray words and takes the *grounded* path with
-    three irrelevant citations. This branch is therefore a term-miss guard, not
-    a semantic-relevance guard, and closing the second gap needs vector
-    retrieval, which D3 defers to P1. Asserting the banana case renders as
-    ungrounded would be asserting a behaviour this build does not have.
+    retrieval is an FTS5 OR-join over *content* words (functional words are
+    stripped before matching), so an out-of-vocabulary question falls cleanly
+    through to the no-context branch. This branch is therefore a real term-miss
+    guard, not a fake one; a near-miss that shares content words still lands
+    grounded, which is the LLM's refusal job via the system prompt.
     """
     body, headers = form("xylophone quokka telemetry")
     page = client.post("/", content=body, headers=headers).text

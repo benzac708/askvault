@@ -30,6 +30,14 @@ def test_index_builds_every_section(indexed):
     assert count == EXPECTED_PASSAGES
 
 
+def test_service_down_question_lands_on_the_incident_runbook(indexed):
+    """The user's natural phrasing must reach the incident doc, not the FAQ noise."""
+    db, _ = indexed
+    hits = store.retrieve("what do I do if a service is down?", k=5, db_path=str(db))
+    assert hits, "expected at least one hit"
+    assert hits[0].doc == "incident-response"
+
+
 def test_rebuild_is_idempotent(indexed):
     """A rebuild must replace, not append. Missing the DELETE doubles the index."""
     db, first = indexed

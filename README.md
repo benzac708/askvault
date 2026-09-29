@@ -126,10 +126,12 @@ this using a deliberately rude stub model that returns garbage.
 
 Retrieval is SQLite FTS5 with BM25 ranking. No embeddings, no vector database.
 
-The honest consequence: the query builder ORs every token, so **any** word
-landing anywhere in the corpus returns passages. "How do I price a banana"
-fills the whole passage window with irrelevant hits, because `how`, `do`, `a`
-and `i` all appear in the corpus; there is no relevance floor.
+The honest consequence: the query builder ORs *content* words - functional
+words (how, do, what, a, the...) are stripped before matching, so a fully
+out-of-vocabulary question like "How do I price a banana" reduces to content
+words that appear nowhere and the NO_CONTEXT branch refuses cleanly. Recall is
+still deliberately high for shared content words; precision is kept honest
+rather than claimed.
 
 This is the deliberate price of zero infrastructure. High recall, no
 precision. Two things follow, and both are load-bearing:
@@ -184,7 +186,7 @@ test suite passes with no API key.
 
 ```bash
 uv sync
-uv run pytest -q          # 96 passed
+uv run pytest -q          # 97 passed
 uv run uvicorn app.main:app --reload
 ```
 
@@ -327,7 +329,7 @@ askvault/
 │   │   └── retrieval/          SQLite FTS5 store and models
 │   └── web/template.html       one server-rendered page, no build step
 ├── samples/                    the document corpus
-├── tests/                      96 tests
+├── tests/                      97 tests
 ├── Dockerfile                  two-stage, uv builder → slim runtime
 └── .github/workflows/ci.yml    verify → image → publish
 

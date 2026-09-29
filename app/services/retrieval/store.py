@@ -76,15 +76,29 @@ def manifest(db_path: str | None = None) -> list[tuple[str, int]]:
         conn.close()
 
 
+# Functional words carry no retrieval signal; OR-ing them dilutes every
+# ranking (a question about a down service out-ranks nothing - the filler
+# words match everything). They are stripped before the expression is built.
+_STOPWORDS = frozenset(
+    "a an and are as at be been but by do does did for from had has have how i if in is it its my no not of on or our so that the their them then there these they this to too up was we were what when where which who why will with you your".split()
+)
+
+
 def _match_expr(question: str) -> str:
     """Build a safe FTS5 MATCH expression.
 
     The raw question must not be passed through: FTS5 reads - " * : ( and
     friends as query syntax and raises sqlite3.OperationalError. Reducing to
-    words and OR-ing them is both safe and gives OR semantics, which suits
-    recall for short questions.
+    content words (stopwords stripped) and OR-ing them is both safe and gives
+    OR semantics, which suits recall for short questions.
     """
-    return " OR ".join(f'"{w}"' for w in _WORDS.findall(question.lower()))
+    words = [
+        w for w in _WORDS.findall(question.lower())
+        if w not in _STOPWORDS
+    ]
+    if not words:
+        words = _WORDS.findall(question.lower())
+    return " OR ".join(f'"{w}"' for w in words)
 
 
 def retrieve(question: str, k: int = 3, db_path: str | None = None) -> list[Passage]:

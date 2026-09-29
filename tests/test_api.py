@@ -58,16 +58,19 @@ def test_no_context_when_nothing_in_the_corpus_matches(client):
     assert "could not find" in body["answer"]
 
 
-def test_a_nonsense_question_still_returns_citations(client):
-    """Documents OR-recall honestly: 'price a banana' matches 'how/do/I/a'.
+def test_out_of_vocabulary_question_is_refused_cleanly(client):
+    """Stopword-stripped OR-recall: a fully out-of-vocabulary question is gone.
 
-    High recall is the deliberate tradeoff for having no embeddings, but it means
-    the no-context branch is a cheap pre-filter, not the primary guard. Rejecting
-    an unsupported question is the LLM's job, via the system prompt.
+    The matcher drops functional words, so 'how do I price a banana' reduces to
+    content words that appear nowhere in the corpus and the no-context branch
+    refuses cleanly. High recall now applies to *content* words only; rejecting
+    an unsupported question is still the LLM's job for near-misses, but the
+    cheap pre-filter is a real guard for total term misses.
     """
     body = client.post("/chat", json={"question": "how do I price a banana"}).json()
-    assert body["passages_considered"] > 0
-    assert len(body["citations"]) == body["passages_considered"]
+    assert body["passages_considered"] == 0
+    assert body["citations"] == []
+    assert "could not find" in body["answer"]
 
 
 def test_provider_failure_is_a_502_not_a_stack_trace(client, monkeypatch):

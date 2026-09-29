@@ -2,8 +2,9 @@
 
 ## Declaring an incident
 
-An incident is declared in the #incidents channel by anyone who notices customer
-impact. Declaring early is always cheaper than declaring late. Post the impact
+If a service is down, slow, or otherwise customer-impacting, that is an
+incident. An incident is declared in the #incidents channel by anyone who
+notices customer. Declaring early is always cheaper than declaring late. Post the impact
 summary within ten minutes even if the cause is still unknown.
 
 ## Severity levels
