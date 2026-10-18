@@ -189,7 +189,7 @@ jobs:
       # fine-grained (or classic) PAT scoped to write:packages on this repo,
       # stored as a repository secret - never in a shell profile.
       - name: Log in to ghcr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
