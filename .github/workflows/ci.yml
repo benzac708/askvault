@@ -87,7 +87,7 @@ jobs:
       # D19 sanitised the corpus, so this keeps proving it on every run rather
       # than once. `detect` is git mode: the working tree, not just the tip.
       - name: Gitleaks over the full history
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
