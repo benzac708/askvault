@@ -110,7 +110,7 @@ jobs:
       # Stating it means a future runner change cannot silently change the
       # artifact.
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build the image
         uses: docker/build-push-action@v6
@@ -181,7 +181,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       # Public packages need a PAT, not the built-in token: GitHub denies
       # GITHUB_TOKEN writes to a PUBLIC ghcr package with
