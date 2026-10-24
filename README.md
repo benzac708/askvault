@@ -396,6 +396,33 @@ the kind of thing that only exists after breaking it once.
 
 ---
 
+
+
+## MCP server
+
+AskVault ships an MCP server so any MCP client (Claude Code, Cursor, OpenCode,
+etc.) can use the corpus as a tool:
+
+```bash
+python mcp_server.py   # stdio transport
+```
+
+Tools exposed:
+- `ask_vault(question, k=5)` — answer a question with citations
+- `vault_health()` — index stats (passage count, document list)
+
+Configure in your MCP client:
+```json
+{
+  "mcpServers": {
+    "askvault": {
+      "command": "python",
+      "args": ["/path/to/askvault-rag/mcp_server.py"]
+    }
+  }
+}
+```
+
 ## Licence
 
 MIT - see [LICENSE](LICENSE).
