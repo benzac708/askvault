@@ -423,6 +423,24 @@ Configure in your MCP client:
 }
 ```
 
+
+
+## CLI
+
+Ask questions from the terminal (no server needed):
+
+```bash
+python cli.py ask "how do I request production access"
+python cli.py ask "question" --json
+python cli.py health
+python cli.py eval [--min-score 0.95]
+```
+
+Use `--base-url` to query a deployed instance:
+```bash
+python cli.py ask "question" --base-url https://askvault.zachara.dev
+```
+
 ## Licence
 
 MIT - see [LICENSE](LICENSE).
