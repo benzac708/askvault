@@ -44,9 +44,14 @@ def build(db_path: str | None = None, samples_dir: str | None = None) -> int:
         for md in sorted(root.rglob("*.md")):
             doc = md.stem
             for i, (section, body) in enumerate(_sections(md.read_text(encoding="utf-8"))):
+                # Index the section heading alongside the body so questions that
+                # match a heading (e.g. "principle of least privilege") retrieve
+                # the right passage instead of a doc that merely mentions the
+                # words in passing.
+                indexed_body = f"{section}\n{body}"
                 conn.execute(
                     "INSERT INTO passages (passage_id, doc, section, body) VALUES (?,?,?,?)",
-                    (f"{doc}#{i}", doc, section, body),
+                    (f"{doc}#{i}", doc, section, indexed_body),
                 )
                 count += 1
         conn.commit()

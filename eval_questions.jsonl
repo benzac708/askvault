@@ -1,0 +1,29 @@
+# eval_questions.jsonl — AskVault eval set (~20 questions)
+# Each line: JSON object with:
+#   question: str
+#   expected_doc: str | null  (doc that should be in top-k, or null for refusal)
+#   should_refuse: bool       (true if no passage should match)
+#   expected_citation: str    (doc that should appear in citations, or null)
+
+{"question": "how do I request production access", "expected_doc": "access-control", "should_refuse": false, "expected_citation": "access-control"}
+{"question": "what is the principle of least privilege", "expected_doc": "access-control", "should_refuse": false, "expected_citation": "access-control"}
+{"question": "how often are access reviews conducted", "expected_doc": "access-control", "should_refuse": false, "expected_citation": "access-control"}
+{"question": "what do I do if a service is down", "expected_doc": "incident-response", "should_refuse": false, "expected_citation": "incident-response"}
+{"question": "what are the severity levels for incidents", "expected_doc": "incident-response", "should_refuse": false, "expected_citation": "incident-response"}
+{"question": "how long do I have to write a postmortem", "expected_doc": "incident-response", "should_refuse": false, "expected_citation": "incident-response"}
+{"question": "what is the escalation path for SEV1", "expected_doc": "incident-response", "should_refuse": false, "expected_citation": "incident-response"}
+{"question": "how do I get a new laptop", "expected_doc": "faq-it", "should_refuse": false, "expected_citation": "faq-it"}
+{"question": "the VPN drops every afternoon", "expected_doc": "faq-it", "should_refuse": false, "expected_citation": "faq-it"}
+{"question": "how do I report a phishing email", "expected_doc": "faq-it", "should_refuse": false, "expected_citation": "faq-it"}
+{"question": "what happens on the first day", "expected_doc": "onboarding", "should_refuse": false, "expected_citation": "onboarding"}
+{"question": "what accounts do I need to set up", "expected_doc": "onboarding", "should_refuse": false, "expected_citation": "onboarding"}
+{"question": "how does the retrieval system work", "expected_doc": "askvault-retrieval", "should_refuse": false, "expected_citation": "askvault-retrieval"}
+{"question": "how do I deploy AskVault", "expected_doc": "askvault-deployment", "should_refuse": false, "expected_citation": "askvault-deployment"}
+{"question": "how do I rebuild the system", "expected_doc": "askvault-rebuild", "should_refuse": false, "expected_citation": "askvault-rebuild"}
+{"question": "what metrics does AskVault expose", "expected_doc": "askvault-observability", "should_refuse": false, "expected_citation": "askvault-observability"}
+{"question": "how are secrets handled", "expected_doc": "askvault-security", "should_refuse": false, "expected_citation": "askvault-security"}
+{"question": "how do I price a banana", "expected_doc": null, "should_refuse": true, "expected_citation": null}
+{"question": "how do I xyzzy frobnicate", "expected_doc": null, "should_refuse": true, "expected_citation": null}
+{"question": "what is the capital of France", "expected_doc": null, "should_refuse": true, "expected_citation": null}
+{"question": "what is quux plugh", "expected_doc": null, "should_refuse": true, "expected_citation": null}
+{"question": "what is quantum computing", "expected_doc": null, "should_refuse": true, "expected_citation": null}
